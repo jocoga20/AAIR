@@ -25,11 +25,10 @@ def draw_background():
 
 import policies
 
-from random import randint
 N = 10
 charge_station = np.array([0, 0])
 robot = Robot(0, 0, 10)
-waypoints = [np.random.randint(low=5, high=12, size=(N, 2)) * 50]
+waypoints = np.random.randint(low=5, high=12, size=(N, 2)) * 50
 
 pg.init()
 screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -68,7 +67,8 @@ while run:
     robot.move(u * 50)
 
     if hovering:
-        waypoints = waypoints[:wpi] + waypoints[(wpi+1):]
+        waypoints = np.delete(waypoints, wpi, axis=0)
+        print(waypoints.shape)
 
     pg.display.flip()
     sleep(0.5)

@@ -16,7 +16,6 @@ def nearest_waypoint(position: np.array, waypoints: np.array):
     i = d.argmin()
     return i
 
-
 def greedy_policy(robot: Robot, waypoints: np.array):
     wpi = nearest_waypoint(robot.position, waypoints)
     dx, dy = waypoints[wpi] - robot.position

@@ -64,7 +64,11 @@ while run:
     draw(x, y, RED)
     
     u, hovering, wpi = policies.greedy_policy(robot, waypoints)
-    robot.move(u * 50)
+    if robot.can_move():
+        robot.move(u * 50)
+    else:
+        print('Discharged.')
+        run = False
 
     if hovering:
         waypoints = np.delete(waypoints, wpi, axis=0)
@@ -73,6 +77,6 @@ while run:
     pg.display.flip()
     sleep(0.5)
     
-
+sleep(2)
 pg.quit()
 sys.exit()

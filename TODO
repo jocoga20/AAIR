@@ -1,0 +1,3 @@
+fix no more waypoints
+- calculate battery distance from objectives (waypoints and charge station)
+greedy policy: robot goes to nearest waypoint if can go to it and then can reach charge_station

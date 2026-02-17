@@ -16,3 +16,7 @@ class Robot:
         x, y = direction
         self.position[0] += x
         self.position[1] += y
+        self.battery -= 1
+    
+    def can_move(self):
+        return self.battery > 0

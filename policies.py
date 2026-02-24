@@ -8,22 +8,10 @@ LEFT = np.array([-1, 0])
 RIGHT = np.array([1, 0])
 directions = [UP, DOWN, LEFT, RIGHT]
 
-def dist(x, y):
-    return np.linalg.norm(x-y)
 
-def nearest_waypoint(position: np.array, waypoints: np.array):
-    d = np.linalg.norm(waypoints - position, axis=1)
-    i = d.argmin()
-    return i
+def nearest_waypoint(robot_position, waypoints):
+    return waypoints[abs(waypoints - robot_position).sum(axis=1).argmin()]
 
-def greedy_policy(state):
-    charge_station, robot, waypoints = state
-    wpi = nearest_waypoint(robot.position, waypoints)
-    dx, dy = waypoints[wpi] - robot.position
-
-    if abs(dx) > abs(dy):
-        dir = np.array([np.sign(dx), 0])
-    else:
-        dir = np.array([0, np.sign(dy)])
-    
-    return dir
+def greedy_policy(charge_station, robot, gridworld, waypoints):
+    dx, dy = nearest_waypoint(robot.position, waypoints) - waypoints
+    return np.array([np.sign(dx), 0]) if abs(dx) > abs(dy) else np.array([0, np.sign(dy)])

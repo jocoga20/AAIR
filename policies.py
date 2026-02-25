@@ -13,5 +13,5 @@ def nearest_waypoint(robot_position, waypoints):
     return waypoints[abs(waypoints - robot_position).sum(axis=1).argmin()]
 
 def greedy_policy(charge_station, robot, gridworld, waypoints):
-    dx, dy = nearest_waypoint(robot.position, waypoints) - waypoints
+    dx, dy = nearest_waypoint(robot.position, waypoints) - robot.position
     return np.array([np.sign(dx), 0]) if abs(dx) > abs(dy) else np.array([0, np.sign(dy)])

@@ -1,27 +1,8 @@
 import numpy as np
 from random import choices
 import policies
-
-class Robot:
-    def __init__(self, x, y, full_battery = 20):
-        self.position = np.array([x, y])
-        self.battery = full_battery
-        self.full_battery = full_battery
-    
-    def move(self, direction):
-        self.position += direction
-        self.battery -= 1
-    
-    def can_move(self):
-        return self.battery > 0
-
-    def recharge(self):
-        self.battery = self.full_battery
-
-WAYPOINT_REWARD = 10
-CHARGE_REWARD = 0
-EMPTY_REWARD = -1
-MAX_X = MAX_Y = 20
+from Robot import Robot
+from config import *
 
 def setup_gridworld(N=5):
     charge_station = np.array([0, 0])
@@ -45,33 +26,50 @@ def choose_direction(direction, robot_position):
     d2 = -d1
     directions = [direction] + [d for d in [d1, d2] if is_allowed(d + robot_position)]
     probabilities = [0.8, 0.2] if len(directions) == 2 else [0.8, 0.1, 0.1]
-    return choices(directions, probabilities)
+    return choices(directions, probabilities)[0]
+
+def compute_reward(charge_station, robot: Robot, gridworld, waypoints):
+    p = tuple(robot.position)
+    reward = 0
+    end_episode = False
+
+    if gridworld[p] == WAYPOINT_REWARD:
+        gridworld[p] = EMPTY_REWARD
+        try:
+            i = np.where(np.all(waypoints == robot.position))
+        except ValueError:
+            print('wp', waypoints.shape)
+        reward = WAYPOINT_REWARD
+        waypoints = np.delete(waypoints, i)
+    elif np.all(p == charge_station):
+        robot.recharge()
+        reward = CHARGE_REWARD
+    else:
+        reward = EMPTY_REWARD
+    
+    if len(waypoints) == 0:
+        end_episode = True
+        reward += COMPLETE_REWARD
+    else:
+        if not robot.can_move():
+            end_episode = True
+            reward += FAIL_REWARD
+
+    return reward, end_episode, waypoints
+
 
 charge_station, gridworld, waypoints = setup_gridworld()
 
 robot = Robot(0, 0)
-print(gridworld)
 score = 0
-running_episode = True
+end_episode = False
 
-
-while running_episode:
+while not end_episode:
     direction = policies.greedy_policy(charge_station, robot, gridworld, waypoints)
     direction = choose_direction(direction, robot.position)
 
-    if robot.can_move():
-        robot.move(direction)
-    else:
-        break
+    robot.move(direction)
 
-    p = tuple(robot.position)
-
-    if gridworld[p] == WAYPOINT_REWARD:
-        score += WAYPOINT_REWARD
-        gridworld[p] = EMPTY_REWARD
-        np.delete()
-    elif p == charge_station:
-        robot.recharge()
-        score += CHARGE_REWARD
-    else:
-        score += gridworld[p]
+    reward, end_episode, waypoints = compute_reward(charge_station, robot, gridworld, waypoints)
+    score += reward
+    print(f'{score} ({reward})')

@@ -1,17 +1,11 @@
+from Grid import Grid
 from Robot import Robot
-from Waypoint import Waypoint
-import numpy as np
 
-UP = np.array([0, -1])
-DOWN = np.array([0, 1])
-LEFT = np.array([-1, 0])
-RIGHT = np.array([1, 0])
-directions = [UP, DOWN, LEFT, RIGHT]
+def greedy_policy(robot: Robot, grid: Grid):
+    return grid.direction_to_nearest_new_waypoint(robot.position)
 
-
-def nearest_waypoint(robot_position, waypoints):
-    return waypoints[abs(waypoints - robot_position).sum(axis=1).argmin()]
-
-def greedy_policy(charge_station, robot, gridworld, waypoints):
-    dx, dy = nearest_waypoint(robot.position, waypoints) - robot.position
-    return np.array([np.sign(dx), 0]) if abs(dx) > abs(dy) else np.array([0, np.sign(dy)])
+def smart_policy(robot: Robot, grid: Grid):
+    min_dist = grid.distances_from_new_waypoints(robot.position).min()
+    if robot.battery < min_dist:
+        return grid.direction_to_charge_station(robot.position)
+    return grid.direction_to_nearest_new_waypoint(robot.position)

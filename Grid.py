@@ -18,25 +18,34 @@ class Grid:
     def random_generate(N, charge_station = np.zeros(2, 'int32'), width = 20, heigth = 20):
         return Grid(np.random.randint(20, size=(N, 2)), charge_station, width, heigth)
     
-    def nearest_waypoint(self, position: np.array):
-        return np.abs(self.waypoints[self.not_visited] - position).sum(axis=1).argmin()
+    def distances_from_new_waypoints(self, position: np.array):
+        return np.abs(self.waypoints[self.not_visited] - position).sum(axis=1)
 
-    def direction_to_nearest_waypoint(self, position: np.array):
-        dx, dy = self.nearest_waypoint(position) - position
+    def nearest_new_waypoint(self, position: np.array):
+        return self.waypoints[self.distances_from_new_waypoints(position).argmin()]
+
+    def direction_to(self, arrival: np.array, start: np.array):
+        dx, dy = arrival - start
 
         if abs(dx) > abs(dy):
             return np.array([np.sign(dx), 0])
         else:
             return np.array([0, np.sign(dy)])
+
+    def direction_to_nearest_new_waypoint(self, position: np.array):
+        return self.direction_to(arrival=self.nearest_new_waypoint(position), start=position)
+    
+    def direction_to_charge_station(self, position: np.array):
+        return self.direction_to(arrival=self.charge_station, start=position)
     
     def waypoint_index(self, position: np.array):
         return np.where(np.all(self.waypoints[self.not_visited] == position, axis=1))
     
     def is_charge_station(self, position: np.array):
-        return np.all(self.charge_station, position)
+        return np.all(self.charge_station == position)
     
     def all_waypoints_visited(self):
-        return np.any(self.not_visited)
+        return not np.any(self.not_visited)
 
     def compute_reward(self, robot: Robot):
         if self.is_charge_station(robot.position):
@@ -45,7 +54,7 @@ class Grid:
         
         i = self.waypoint_index(robot.position)[0]
 
-        if i.size != 0: # is over a waypoint of index i
+        if len(i) > 0: # is over a waypoint of index i
             self.not_visited[i.astype('int32')] = False
 
             if self.all_waypoints_visited():
@@ -58,7 +67,3 @@ class Grid:
                     self.episode_continues = False
                     return FAIL_REWARD
         return EMPTY_REWARD
-    
-np.random.seed(42)
-g = Grid.random_generate(N=5)
-print(g.visit(np.array([5, 19])))

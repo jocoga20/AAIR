@@ -1,9 +1,13 @@
+from time import sleep
+
 import numpy as np
-from random import choices
+import random
 from Grid import Grid
 import policies
 from Robot import Robot
 from config import *
+import pygame as pg
+
 
 def is_allowed(position):
     x, y = position
@@ -15,9 +19,49 @@ def choose_direction(direction, robot_position):
     d2 = -d1
     directions = [direction] + [d for d in [d1, d2] if is_allowed(d + robot_position)]
     probabilities = [0.8, 0.2] if len(directions) == 2 else [0.8, 0.1, 0.1]
-    return choices(directions, probabilities)[0]
+    return random.choices(directions, probabilities)[0]
 
-g = Grid.random_generate(N=5)
+myseed = 42
+random.seed(myseed)
+np.random.seed(myseed)
+grid = Grid.random_generate(N=5)
+robot = Robot(x=0, y=0, full_battery=30)
+score = 0
 
-while g.episode_continues:
+pg.init()
+screen = pg.display.set_mode((WIDTH, HEIGTH))
+pg.display.set_caption('AAIR')
+
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
+while grid.episode_continues:
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            pg.quit()
+            break
     
+    screen.fill(WHITE)
+
+    x, y = grid.charge_station
+    pg.draw.rect(screen, GREEN, (x*SIZE, y*SIZE, SIZE, SIZE))
+
+    for w in grid.waypoints[grid.not_visited]:
+        x, y = w
+        pg.draw.rect(screen, BLUE, (x*SIZE, y*SIZE, SIZE, SIZE))
+
+    x, y = robot.position
+    pg.draw.rect(screen, RED, (x*SIZE, y*SIZE, SIZE, SIZE))
+    
+    direction = policies.smart_policy(robot, grid)
+#    direction = choose_direction(direction, robot.position)
+    robot.move(direction)
+
+    reward = grid.compute_reward(robot)
+    score += reward
+    
+    print(f'{score} ({f'+{reward}' if reward > 0 else reward})')
+    pg.display.flip()
+    sleep(0.5)

@@ -24,8 +24,9 @@ def choose_direction(direction, robot_position):
 myseed = 42
 random.seed(myseed)
 np.random.seed(myseed)
-grid = Grid.random_generate(N=5)
-robot = Robot(x=0, y=0, full_battery=60)
+charge_station = np.zeros(2, 'int32')
+grid = Grid.random_generate(N=5, charge_station=charge_station)
+robot = Robot(x=0, y=0, full_battery=2*grid.distance_to_furthest_waypoint(charge_station))
 score = 0
 
 vf = ValueFunction(MAX_X, MAX_Y)
@@ -40,32 +41,34 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+screen.fill(WHITE)
+
+for y in range(0, HEIGTH, SIZE):
+    pg.draw.line(screen, BLACK, (0, y), (WIDTH, y))
+    
+for x in range(0, WIDTH, SIZE):
+    pg.draw.line(screen, BLACK, (x, 0), (x, HEIGTH))
+
 while grid.episode_continues:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             pg.quit()
             break
-    
-    screen.fill(WHITE)
-    
-    for y in range(SIZE, HEIGTH, SIZE):
-        pg.draw.line(screen, BLACK, (0, y), (WIDTH, y))
-    
-    for x in range(SIZE, WIDTH, SIZE):
-        pg.draw.line(screen, BLACK, (x, 0), (x, HEIGTH))
 
     x, y = grid.charge_station
-    pg.draw.rect(screen, GREEN, (x*SIZE, y*SIZE, SIZE, SIZE))
+    pg.draw.rect(screen, GREEN, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
 
     for w in grid.waypoints:
         x, y = w
-        pg.draw.rect(screen, BLUE, (x*SIZE, y*SIZE, SIZE, SIZE))
+        pg.draw.rect(screen, BLUE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
 
     x, y = robot.position
-    pg.draw.rect(screen, RED, (x*SIZE, y*SIZE, SIZE, SIZE))
-    direction = policies.smart_policy(robot, grid)
-#    direction = choose_direction(direction, robot.position)
+    pg.draw.rect(screen, WHITE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
+    direction = policies.one_by_one_policy(robot, grid)
+    direction = choose_direction(direction, robot.position)
     robot.move(direction)
+    x, y = robot.position
+    pg.draw.rect(screen, RED, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
 
     reward = grid.compute_reward(robot)
     x, y = robot.position
@@ -74,6 +77,8 @@ while grid.episode_continues:
     
 #    print(f'{score} ({f'+{reward}' if reward > 0 else reward})')
 
-    print(vf.status)
+    #print(vf.status)
+#    print('w', grid.distances_from_new_waypoints(robot.position).min())
+#    print('c', grid.distance_from_charge_station(robot.position))
     pg.display.flip()
     sleep(0.1)

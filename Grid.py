@@ -19,9 +19,18 @@ class Grid:
     
     def distances_from_new_waypoints(self, position: np.array):
         return np.abs(self.waypoints - position).sum(axis=1)
+    
+    def distance_between(self, first_position: np.array, second_position: np.array):
+        return np.abs(first_position - second_position).sum()
+
+    def distance_from_charge_station(self, position: np.array):
+        return self.distance_between(position, self.charge_station)
 
     def nearest_new_waypoint(self, position: np.array):
         return self.waypoints[self.distances_from_new_waypoints(position).argmin()]
+    
+    def distance_to_furthest_waypoint(self, position: np.array):
+        return self.distances_from_new_waypoints(position).max()
 
     def direction_to(self, arrival: np.array, start: np.array):
         dx, dy = arrival - start
@@ -48,21 +57,23 @@ class Grid:
 
     def compute_reward(self, robot: Robot):
         if self.is_charge_station(robot.position):
-            robot.recharge()
-            return CHARGE_REWARD
-        
-        i = self.waypoint_index(robot.position)[0]
-
-        if len(i) > 0: # is over a waypoint of index i
-            self.waypoints = np.delete(self.waypoints, i, axis=0)
-
             if self.all_waypoints_visited():
                 self.episode_continues = False
-                return WAYPOINT_REWARD + COMPLETE_REWARD
+                return CHARGE_REWARD + COMPLETE_REWARD
             else:
-                if robot.can_move():
-                    return WAYPOINT_REWARD
-                else:
-                    self.episode_continues = False
-                    return FAIL_REWARD
+                robot.recharge()
+                return CHARGE_REWARD
+        
+
+        if not robot.can_move():
+            self.episode_continues = False
+            return FAIL_REWARD
+        
+        i = self.waypoint_index(robot.position)[0]
+        is_hovering_waypoint = len(i) > 0
+
+        if is_hovering_waypoint:
+            self.waypoints = np.delete(self.waypoints, i, axis=0)
+            return WAYPOINT_REWARD
+        
         return EMPTY_REWARD

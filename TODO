@@ -1,7 +1,0 @@
-fix no more waypoints
-- calculate battery distance from objectives (waypoints and charge station)
-greedy policy: robot goes to nearest waypoint if can go to it and then can reach charge_station
-
-do not delete visited waypoints, color them and signal they are already visited
-
-reward solo quando sblocco il waypoint per la prima volta, altrimenti farmo punti

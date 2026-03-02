@@ -18,18 +18,21 @@ def choose_direction(direction, robot_position):
     d1 = np.array([dy, dx])
     d2 = -d1
     directions = [direction] + [d for d in [d1, d2] if is_allowed(d + robot_position)]
-    probabilities = [0.8, 0.2] if len(directions) == 2 else [0.8, 0.1, 0.1]
+    pmax = 0.9
+    probabilities = [pmax, 1-pmax] if len(directions) == 2 else [pmax, (1-pmax)/2, (1-pmax)/2]
     return random.choices(directions, probabilities)[0]
 
 myseed = 42
 random.seed(myseed)
 np.random.seed(myseed)
 charge_station = np.zeros(2, 'int32')
-grid = Grid.random_generate(N=5, charge_station=charge_station)
-robot = Robot(x=0, y=0, full_battery=2*grid.distance_to_furthest_waypoint(charge_station))
+N = 5
+grid = Grid.random_generate(N=N, charge_station=charge_station)
+full_battery=2*grid.distance_to_furthest_waypoint(charge_station)
+robot = Robot(x=0, y=0, full_battery=full_battery)
 score = 0
 
-vf = ValueFunction(MAX_X, MAX_Y)
+vf = ValueFunction()
 
 pg.init()
 screen = pg.display.set_mode((WIDTH, HEIGTH))
@@ -72,7 +75,7 @@ while grid.episode_continues:
 
     reward = grid.compute_reward(robot)
     x, y = robot.position
-    vf.update(x, y, reward)
+    vf.update(x, y, robot.battery, grid.waypoints_status, reward)
     score += reward
     
 #    print(f'{score} ({f'+{reward}' if reward > 0 else reward})')
@@ -81,4 +84,6 @@ while grid.episode_continues:
 #    print('w', grid.distances_from_new_waypoints(robot.position).min())
 #    print('c', grid.distance_from_charge_station(robot.position))
     pg.display.flip()
-    sleep(0.1)
+#    sleep(0.1)
+
+print(vf.status_list)

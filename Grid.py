@@ -6,6 +6,7 @@ class Grid:
     def __init__(self, waypoints: np.array, charge_station = np.zeros(2, 'int32'), width = 20, heigth = 20):
         self.reward_matrix = np.ones((heigth, width), dtype='int32') * EMPTY_REWARD
         self.reward_matrix[tuple(charge_station)] = CHARGE_REWARD
+        self.waypoints_status = 0
 
         for w in waypoints:
             self.reward_matrix[tuple(w)] = WAYPOINT_REWARD
@@ -67,6 +68,7 @@ class Grid:
 
         if not robot.can_move():
             self.episode_continues = False
+            print('Fail')
             return FAIL_REWARD
         
         i = self.waypoint_index(robot.position)[0]
@@ -74,6 +76,7 @@ class Grid:
 
         if is_hovering_waypoint:
             self.waypoints = np.delete(self.waypoints, i, axis=0)
+            self.waypoints_status += 2 ** i
             return WAYPOINT_REWARD
         
         return EMPTY_REWARD

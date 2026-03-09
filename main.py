@@ -22,68 +22,125 @@ def choose_direction(direction, robot_position):
     probabilities = [pmax, 1-pmax] if len(directions) == 2 else [pmax, (1-pmax)/2, (1-pmax)/2]
     return random.choices(directions, probabilities)[0]
 
-myseed = 42
-random.seed(myseed)
-np.random.seed(myseed)
-charge_station = np.zeros(2, 'int32')
-N = 5
-grid = Grid.random_generate(N=N, charge_station=charge_station)
-full_battery=2*grid.distance_to_furthest_waypoint(charge_station)
-robot = Robot(x=0, y=0, full_battery=full_battery)
-score = 0
+def state_key(robot: Robot, grid: Grid):
+    x, y = robot.position
+    x, y = x.item(), y.item()
 
-vf = ValueFunction()
+    return x, y, robot.battery, grid.waypoints_status
 
-pg.init()
-screen = pg.display.set_mode((WIDTH, HEIGTH))
-pg.display.set_caption('AAIR')
+def experiment_draw(seed):
+    random.seed(seed)
+    np.random.seed(seed)
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
+    charge_station = np.zeros(2, 'int32')
 
-screen.fill(WHITE)
+    N = 5
+    grid = Grid.random_generate(N=N, charge_station=charge_station)
 
-for y in range(0, HEIGTH, SIZE):
-    pg.draw.line(screen, BLACK, (0, y), (WIDTH, y))
+    robot = Robot(x=0, y=0, full_battery=100)
+    old_state_key = state_key(robot, grid)
+
+    discount_factor = 0.9
+    score = 0
+
+    vf = ValueFunction(step_size=0.9, discount_factor=discount_factor)
+
+    pg.init()
+    screen = pg.display.set_mode((WIDTH, HEIGTH))
+    pg.display.set_caption(f'AAIR seed {seed}')
+
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+
+    screen.fill(WHITE)
+
+    for y in range(0, HEIGTH, SIZE):
+        pg.draw.line(screen, BLACK, (0, y), (WIDTH, y))
+        
+    for x in range(0, WIDTH, SIZE):
+        pg.draw.line(screen, BLACK, (x, 0), (x, HEIGTH))
+
+    while grid.episode_continues:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                break
+
+        x, y = grid.charge_station
+        pg.draw.rect(screen, GREEN, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
+
+        for w in grid.waypoints:
+            x, y = w
+            pg.draw.rect(screen, BLUE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
+
+        # clear old robot position before redrawing
+        x, y = robot.position
+        pg.draw.rect(screen, WHITE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
+
+        direction = policies.greedy_policy(robot, grid)
+        direction = choose_direction(direction, robot.position)
+        robot.move(direction)
+
+        x, y = robot.position
+        pg.draw.rect(screen, RED, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
+
+        reward = grid.compute_reward(robot)
+        score += discount_factor * reward
+        new_state_key = state_key(robot, grid)
+        vf.update(old_state_key, new_state_key, reward)
+        old_state_key = new_state_key
+        pg.display.flip()
+        sleep(1)
+    return score
+
+def experiment(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+
+    charge_station = np.zeros(2, 'int32')
+
+    N = 5
+    grid = Grid.random_generate(N=N, charge_station=charge_station)
+
+    robot = Robot(x=0, y=0, full_battery=100)
+    old_state_key = state_key(robot, grid)
+
+    discount_factor = 0.9
+    score = 0
+
+    vf = ValueFunction(step_size=0.9, discount_factor=discount_factor)
+
+    while grid.episode_continues:
+        direction = policies.greedy_policy(robot, grid)
+        direction = choose_direction(direction, robot.position)
+        robot.move(direction)
+
+        reward = grid.compute_reward(robot)
+        score += discount_factor * reward
+        new_state_key = state_key(robot, grid)
+        vf.update(old_state_key, new_state_key, reward)
+        old_state_key = new_state_key
+    return score
+
+import matplotlib.pyplot as plt
+
+def plot_hist(values, bins=20):
+    values = np.array(values)
     
-for x in range(0, WIDTH, SIZE):
-    pg.draw.line(screen, BLACK, (x, 0), (x, HEIGTH))
-
-while grid.episode_continues:
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            pg.quit()
-            break
-
-    x, y = grid.charge_station
-    pg.draw.rect(screen, GREEN, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
-
-    for w in grid.waypoints:
-        x, y = w
-        pg.draw.rect(screen, BLUE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
-
-    x, y = robot.position
-    pg.draw.rect(screen, WHITE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
-    direction = policies.one_by_one_policy(robot, grid)
-    direction = choose_direction(direction, robot.position)
-    robot.move(direction)
-    x, y = robot.position
-    pg.draw.rect(screen, RED, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
-
-    reward = grid.compute_reward(robot)
-    x, y = robot.position
-    vf.update(x, y, robot.battery, grid.waypoints_status, reward)
-    score += reward
+    plt.figure()
+    plt.hist(values, bins=bins)
+    plt.axvline(values.mean(), linestyle="dashed", label=f"mean = {values.mean():.3f}")
     
-#    print(f'{score} ({f'+{reward}' if reward > 0 else reward})')
+    plt.legend()
+    plt.xlabel("Value")
+    plt.ylabel("Frequency")
+    plt.title("Histogram")
+    plt.savefig(f'hist{bins}.png')
 
-    #print(vf.status)
-#    print('w', grid.distances_from_new_waypoints(robot.position).min())
-#    print('c', grid.distance_from_charge_station(robot.position))
-    pg.display.flip()
-#    sleep(0.1)
+results = [experiment(seed) for seed in range(1_000)]
 
-print(vf.status_list)
+for bins in [100, 200, 400, 1000]:
+    plot_hist(results, bins)

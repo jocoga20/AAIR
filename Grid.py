@@ -16,7 +16,9 @@ class Grid:
         self.episode_continues = True
     
     def random_generate(N, charge_station = np.zeros(2, 'int32'), width = 20, heigth = 20):
-        return Grid(np.random.randint(20, size=(N, 2)), charge_station, width, heigth)
+        coords = np.random.choice(np.arange(1, width * heigth), N, replace=False)
+        coords = np.column_stack((coords // 20, coords % 20))
+        return Grid(coords, charge_station, width, heigth)
     
     def distances_from_new_waypoints(self, position: np.array):
         return np.abs(self.waypoints - position).sum(axis=1)
@@ -64,17 +66,16 @@ class Grid:
             else:
                 robot.recharge()
                 return CHARGE_REWARD
-        
 
         if not robot.can_move():
             self.episode_continues = False
-            print('Fail')
             return FAIL_REWARD
         
         i = self.waypoint_index(robot.position)[0]
         is_hovering_waypoint = len(i) > 0
 
         if is_hovering_waypoint:
+            i = i.item()
             self.waypoints = np.delete(self.waypoints, i, axis=0)
             self.waypoints_status += 2 ** i
             return WAYPOINT_REWARD

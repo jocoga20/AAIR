@@ -1,7 +1,9 @@
 from Grid import Grid
 from Robot import Robot
-
-
+from ValueFunction import ValueFunction
+from config import *
+import random
+from utils import *
 
 def greedy_policy(robot: Robot, grid: Grid):
     """
@@ -48,3 +50,20 @@ def one_by_one_policy(robot: Robot, grid: Grid):
     if robot.battery >= d_wp + d_cs:
         return grid.direction_to(arrival=wp, start=robot.position)
     return grid.direction_to_charge_station(robot.position)
+
+def direction_value(direction: np.array, robot: Robot, grid: Grid, value_function: ValueFunction):
+    robot.move(direction)
+    value = value_function.get(state_key(robot, grid))
+    robot.move(-direction)
+    robot.battery += 2
+    return value
+
+def best_action(robot: Robot, grid: Grid, actions: list[np.array], value_function: ValueFunction):
+    return actions[np.array([direction_value(d, robot, grid, value_function) for d in actions]).argmax()]
+
+def epsilon_greedy(allowed_directions, robot, grid, vf):
+    if random.random() < EPSILON:
+        direction = random.choice(allowed_directions)
+    else:
+        direction = best_action(robot, grid, allowed_directions, vf)
+    return direction

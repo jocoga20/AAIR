@@ -1,10 +1,11 @@
 import numpy as np
 from Robot import Robot
 from config import *
+import pygame as pg
 
 class Grid:
-    def __init__(self, waypoints: np.array, charge_station = np.zeros(2, 'int32'), width = 20, heigth = 20):
-        self.reward_matrix = np.ones((heigth, width), dtype='int32') * EMPTY_REWARD
+    def __init__(self, waypoints: np.array, charge_station = np.zeros(2, 'int32')):
+        self.reward_matrix = np.ones((MAX_Y, MAX_X), dtype='int32') * EMPTY_REWARD
         self.reward_matrix[tuple(charge_station)] = CHARGE_REWARD
         self.waypoints_status = 0
 
@@ -15,10 +16,10 @@ class Grid:
         self.charge_station = charge_station
         self.episode_continues = True
     
-    def random_generate(N, charge_station = np.zeros(2, 'int32'), width = 20, heigth = 20):
-        coords = np.random.choice(np.arange(1, width * heigth), N, replace=False)
-        coords = np.column_stack((coords // 20, coords % 20))
-        return Grid(coords, charge_station, width, heigth)
+    def random_generate(N, charge_station = np.zeros(2, 'int32')):
+        coords = np.random.choice(np.arange(1, MAX_X * MAX_Y), N, replace=False)
+        coords = np.column_stack((coords // MAX_X, coords % MAX_Y))
+        return Grid(coords, charge_station)
     
     def distances_from_new_waypoints(self, position: np.array):
         return np.abs(self.waypoints - position).sum(axis=1)
@@ -62,6 +63,7 @@ class Grid:
         if self.is_charge_station(robot.position):
             if self.all_waypoints_visited():
                 self.episode_continues = False
+                print('Mission accomplished')
                 return CHARGE_REWARD + COMPLETE_REWARD
             else:
                 robot.recharge()
@@ -80,4 +82,14 @@ class Grid:
             self.waypoints_status += 2 ** i
             return WAYPOINT_REWARD
         
-        return EMPTY_REWARD
+        waypoint_dist = self.distance_between(robot.position, self.nearest_new_waypoint(robot.position))
+        return EMPTY_REWARD + WAYPOINT_REWARD/((waypoint_dist + 1)**2)
+
+    def draw_charge_station(self, screen):
+        x, y = self.charge_station
+        pg.draw.rect(screen, GREEN, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
+    
+    def draw_waypoints(self, screen):
+        for w in self.waypoints:
+            x, y = w
+            pg.draw.rect(screen, BLUE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))

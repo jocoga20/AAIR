@@ -1,6 +1,8 @@
 from Grid import Grid
 from Robot import Robot
 
+
+
 def greedy_policy(robot: Robot, grid: Grid):
     """
     Just go to the nearest waypoint. It will surely die if battery is not sufficient.

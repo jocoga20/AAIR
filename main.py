@@ -28,6 +28,16 @@ def state_key(robot: Robot, grid: Grid):
 
     return x, y, robot.battery, grid.waypoints_status
 
+def direction_value(direction: np.array, robot: Robot, grid: Grid, value_function: ValueFunction):
+    robot.move(direction)
+    value = value_function.get(state_key(robot, grid))
+    robot.move(-direction)
+    robot.battery += 2
+    return value
+
+def best_action(robot: Robot, grid: Grid, actions: list[np.array], value_function: ValueFunction):
+    return [direction_value(d, robot, grid, value_function) for d in actions]
+
 def experiment_draw(seed):
     random.seed(seed)
     np.random.seed(seed)

@@ -8,10 +8,10 @@ MAX_X = MAX_Y = 10
 SIZE = 50
 WIDTH, HEIGTH = MAX_X * SIZE, MAX_Y * SIZE
 
-FRAME_DRAW_TIMER = .1
+FRAME_DRAW_TIMER = .05
 EPSILON = 1/3
 
-DISCOUNT_FACTOR = 0.9
+REWARD_DISCOUNT = 0.9
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -24,3 +24,6 @@ import numpy as np
 DIRECTIONS = np.array([[1,0], [0,1], [-1,0], [0, -1]], dtype='int32')
 
 N_WAYPOINTS = 3
+
+STEP_SIZE_RULE = lambda t: 1 / (t + 1)
+BORDER_REWARD = -100

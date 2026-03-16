@@ -32,14 +32,14 @@ def set_seed(seed):
 
 def setup(nwaypoints, charge_station):
     x, y = charge_station
-    robot = Robot(x=x, y=y, full_battery=100)
+    robot = Robot(x=x, y=y, full_battery=50)
     grid = Grid.random_generate(N=nwaypoints, charge_station=charge_station)
     return grid, robot
 
-def init_graphics(seed):
+def init_graphics(seed, title):
     pg.init()
     screen = pg.display.set_mode((WIDTH, HEIGTH))
-    pg.display.set_caption(f'AAIR seed {seed}')
+    pg.display.set_caption(f'AAIR seed {seed} - {title}')
     screen.fill(WHITE)
 
     for y in range(0, HEIGTH, SIZE):
@@ -56,13 +56,13 @@ def pygame_quit():
             return True
     return False
 
-def experiment_draw(seed, vf, nwaypoints = N_WAYPOINTS, charge_station_position = np.zeros(2, 'int32')):
+def experiment_draw(seed, vf, title, nwaypoints = N_WAYPOINTS, charge_station_position = np.zeros(2, 'int32')):
     set_seed(seed)
     grid, robot = setup(nwaypoints, charge_station_position)
 
     s0 = state_key(robot, grid)
     score = 0
-    screen = init_graphics(seed)
+    screen = init_graphics(seed, title)
 
     while grid.episode_continues:
         if pygame_quit():
@@ -79,7 +79,7 @@ def experiment_draw(seed, vf, nwaypoints = N_WAYPOINTS, charge_station_position 
         robot.draw(screen)
 
         reward = grid.compute_reward(robot)
-        score += DISCOUNT_FACTOR * reward
+        score += REWARD_DISCOUNT * reward
         s1 = state_key(robot, grid)
         vf.update(s0, s1, reward)
         s0 = s1
@@ -103,7 +103,7 @@ def experiment(seed, vf, nwaypoints = N_WAYPOINTS, charge_station_position = np.
         robot.move(direction)
 
         reward = grid.compute_reward(robot)
-        score += DISCOUNT_FACTOR * reward
+        score += REWARD_DISCOUNT * reward
         s1 = state_key(robot, grid)
         vf.update(s0, s1, reward)
         s0 = s1
@@ -128,7 +128,7 @@ def plot_hist(values, bins=20):
     plt.title("Histogram")
     plt.savefig(f'hist{bins}.png')
 
-vf = ValueFunction(step_size=0.9, discount_factor=DISCOUNT_FACTOR)
+vf = ValueFunction(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
 
 x_vals = []
 y_vals = []
@@ -156,25 +156,25 @@ def update_plot(x, y):
 
 plt.show(block=False)   # fondamentale
 
-eps_exp = 2/3
-eps_std = 1 - eps_exp
-nepisode_exp = 20
+eps_explore = .8
+eps_exploit = 1 - eps_explore
 
-EPSILON = eps_exp
-for it in range(20):
-    score = experiment(42, vf)
+nexplore = 5
+nexploit = 10
+
+it = 0
+
+def draw_cycle(it, title):
+    if it < 130:
+        score = experiment(42, vf)
+    else:
+        score = experiment_draw(42, vf, title)
     update_plot(it, score)
 
-plt.savefig('img.png')
-
-EPSILON = eps_std
-for it in range(nepisode_exp, 800 + nepisode_exp):
-    score = experiment(42, vf)
-    update_plot(it, score)
-    
-
-for it in range(800 + nepisode_exp, 800 + nepisode_exp + 10):
-    score = experiment_draw(42, vf)
-    update_plot(it, score)
-
-plt.savefig('img.png')
+while True:
+    EPSILON = eps_explore
+    for it in range(it, it + nexplore):
+        draw_cycle(it, 'EXPLORE')
+    EPSILON = eps_exploit
+    for it in range(it, it + nexploit):
+        draw_cycle(it, 'EXPLOIT')

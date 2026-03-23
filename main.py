@@ -14,9 +14,6 @@ def is_allowed(position):
     x, y = position
     return 0 <= x and x < MAX_X and 0 <= y and y < MAX_Y
 
-def filter_allowed(directions, position):
-    return [d for d in directions if is_allowed(position + d)]
-
 def choose_direction(direction, robot_position):
     dx, dy = direction
     d1 = np.array([dy, dx])
@@ -32,7 +29,7 @@ def set_seed(seed):
 
 def setup(nwaypoints, charge_station):
     x, y = charge_station
-    robot = Robot(x=x, y=y, full_battery=50)
+    robot = Robot(x=x, y=y, full_battery=(MAX_X + MAX_Y)*2)
     grid = Grid.random_generate(N=nwaypoints, charge_station=charge_station)
     return grid, robot
 
@@ -56,27 +53,30 @@ def pygame_quit():
             return True
     return False
 
-def experiment_draw(seed, vf, title, nwaypoints = N_WAYPOINTS, charge_station_position = np.zeros(2, 'int32')):
+def experiment(seed, vf, title, nwaypoints = N_WAYPOINTS, charge_station_position = np.zeros(2, 'int32')):
     set_seed(seed)
     grid, robot = setup(nwaypoints, charge_station_position)
 
     s0 = state_key(robot, grid)
     score = 0
-    screen = init_graphics(seed, title)
+    if drawing:
+        screen = init_graphics(seed, title)
 
     while grid.episode_continues:
-        if pygame_quit():
+        if drawing and pygame_quit():
             break
 
-        grid.draw_charge_station(screen)
-        grid.draw_waypoints(screen)
-        robot.erase(screen)
+        if drawing:
+            grid.draw_charge_station(screen)
+            grid.draw_waypoints(screen)
+            robot.erase(screen)
 
-        allowed_directions = filter_allowed(DIRECTIONS, robot.position)
-        direction = policies.epsilon_greedy(allowed_directions, robot, grid, vf)
-        # direction = choose_direction(direction, robot.position)
+        direction = policies.pedant_policy(grid, robot)
+        direction = choose_direction(direction, robot.position)
         robot.move(direction)
-        robot.draw(screen)
+
+        if drawing:
+            robot.draw(screen)
 
         reward = grid.compute_reward(robot)
         score += REWARD_DISCOUNT * reward
@@ -84,31 +84,11 @@ def experiment_draw(seed, vf, title, nwaypoints = N_WAYPOINTS, charge_station_po
         vf.update(s0, s1, reward)
         s0 = s1
 
-        pg.display.flip()
-        sleep(FRAME_DRAW_TIMER)
+        if drawing:
+            pg.display.flip()
+            sleep(FRAME_DRAW_TIMER)
 
-    return score
-
-def experiment(seed, vf, nwaypoints = N_WAYPOINTS, charge_station_position = np.zeros(2, 'int32')):
-    set_seed(seed)
-    grid, robot = setup(nwaypoints, charge_station_position)
-
-    s0 = state_key(robot, grid)
-    score = 0
-
-    while grid.episode_continues:
-        allowed_directions = filter_allowed(DIRECTIONS, robot.position)
-        direction = policies.epsilon_greedy(allowed_directions, robot, grid, vf)
-        # direction = choose_direction(direction, robot.position)
-        robot.move(direction)
-
-        reward = grid.compute_reward(robot)
-        score += REWARD_DISCOUNT * reward
-        s1 = state_key(robot, grid)
-        vf.update(s0, s1, reward)
-        s0 = s1
-
-    return score
+    return score, grid.mission_complete
 
 import matplotlib
 matplotlib.use("TkAgg")   # oppure QtAgg
@@ -141,6 +121,7 @@ line, = ax.plot(x_vals, y_vals, marker='o')
 ax.set_xlabel("iteration")
 ax.set_ylabel("score")
 ax.set_title("Score per episode")
+drawing = False
 
 def update_plot(x, y):
     x_vals.append(x)
@@ -153,28 +134,30 @@ def update_plot(x, y):
     fig.canvas.draw()
     fig.canvas.flush_events()
 
+def plot_scores(success, fails):
+    scount = len(success)
+    fcount = len(fails)
+    plt.scatter(list(range(scount)), success, c='red', label=f'success ({scount})')
+    plt.scatter(list(range(scount, scount+fcount)), fails, c='blue', label=f'fail ({fcount})')
+    plt.ylabel('scores')
+    plt.xlabel('-')
+    plt.legend(loc='lower left')
+    plt.savefig('scores.png')
 
-plt.show(block=False)   # fondamentale
-
-eps_explore = .8
-eps_exploit = 1 - eps_explore
-
-nexplore = 5
-nexploit = 10
+plt.show(block=False)
+success_scores = []
+fail_scores = []
 
 it = 0
+def cycle_for(times):
+    global it
+    for _ in range(times):
+        score, completed = experiment(42+it, vf, 'AAIR')
+        if completed:
+            success_scores.append(score)
+        else:
+            fail_scores.append(score)
+        it += 1
 
-def draw_cycle(it, title):
-    if it < 130:
-        score = experiment(42, vf)
-    else:
-        score = experiment_draw(42, vf, title)
-    update_plot(it, score)
-
-while True:
-    EPSILON = eps_explore
-    for it in range(it, it + nexplore):
-        draw_cycle(it, 'EXPLORE')
-    EPSILON = eps_exploit
-    for it in range(it, it + nexploit):
-        draw_cycle(it, 'EXPLOIT')
+cycle_for(10_000)
+plot_scores(success_scores, fail_scores)

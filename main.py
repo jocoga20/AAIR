@@ -91,9 +91,6 @@ def experiment(seed, vf, title, nwaypoints = N_WAYPOINTS, charge_station_positio
 
     return score, grid.mission_complete
 
-import matplotlib
-matplotlib.use("TkAgg")   # oppure QtAgg
-
 import matplotlib.pyplot as plt
 
 def plot_hist(values, bins=20):
@@ -110,55 +107,16 @@ def plot_hist(values, bins=20):
     plt.savefig(f'hist{bins}.png')
 
 vf = ValueFunctionLambda(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
-
-x_vals = []
-y_vals = []
-
-plt.ion()
-
-fig, ax = plt.subplots()
-line, = ax.plot(x_vals, y_vals, marker='o')
-
-ax.set_xlabel("iteration")
-ax.set_ylabel("score")
-ax.set_title("Score per episode")
 drawing = False
+import numpy as np
 
-def update_plot(x, y):
-    x_vals.append(x)
-    y_vals.append(y)
+def plot_vf(vf: ValueFunction):
+    xs = np.array(list(vf.value_dict.values()))
+    xs.sort()
+    plt.scatter(list(range(len(xs))), xs)
+    plt.show()
 
-    line.set_xdata(x_vals)
-    line.set_ydata(y_vals)
-    ax.relim()
-    ax.autoscale_view()
-    fig.canvas.draw()
-    fig.canvas.flush_events()
+for it in range(100):
+    experiment(seed=42 + it, vf=vf, title='AAIR')
 
-def plot_scores(success, fails):
-    scount = len(success)
-    fcount = len(fails)
-    plt.scatter(list(range(scount)), success, c='red', label=f'success ({scount})')
-    plt.scatter(list(range(scount, scount+fcount)), fails, c='blue', label=f'fail ({fcount})')
-    plt.ylabel('scores')
-    plt.xlabel('-')
-    plt.legend(loc='lower left')
-    plt.savefig('scores.png')
-
-plt.show(block=False)
-success_scores = []
-fail_scores = []
-
-it = 0
-def cycle_for(times):
-    global it
-    for _ in range(times):
-        score, completed = experiment(42+it, vf, 'AAIR')
-        if completed:
-            success_scores.append(score)
-        else:
-            fail_scores.append(score)
-        it += 1
-
-cycle_for(100)
-plot_scores(success_scores, fail_scores)
+plot_vf(vf)

@@ -4,6 +4,7 @@ import numpy as np
 import random
 from Grid import Grid
 from ValueFunction import ValueFunction
+from ValueFunctionLambda import ValueFunctionLambda
 import policies
 from Robot import Robot
 from config import *
@@ -67,9 +68,9 @@ def experiment(seed, vf, title, nwaypoints = N_WAYPOINTS, charge_station_positio
             break
 
         if drawing:
+            robot.erase(screen)
             grid.draw_charge_station(screen)
             grid.draw_waypoints(screen)
-            robot.erase(screen)
 
         direction = policies.pedant_policy(grid, robot)
         direction = choose_direction(direction, robot.position)
@@ -108,7 +109,7 @@ def plot_hist(values, bins=20):
     plt.title("Histogram")
     plt.savefig(f'hist{bins}.png')
 
-vf = ValueFunction(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
+vf = ValueFunctionLambda(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
 
 x_vals = []
 y_vals = []
@@ -159,5 +160,5 @@ def cycle_for(times):
             fail_scores.append(score)
         it += 1
 
-cycle_for(10_000)
+cycle_for(100)
 plot_scores(success_scores, fail_scores)

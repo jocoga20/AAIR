@@ -13,7 +13,7 @@ class Grid:
         self.waypoints_counter = waypoints.shape[0]
 
     @staticmethod
-    def random_generate(N, charge_station = np.zeros(2, 'int32')):
+    def random_generate(N: int, charge_station = np.zeros(2, 'int32')):
         coords = np.random.choice(np.arange(1, MAX_X * MAX_Y), N, replace=False)
         coords = np.column_stack((coords // MAX_X, coords % MAX_Y))
         return Grid(coords, charge_station)
@@ -53,7 +53,6 @@ class Grid:
         return self.waypoints_counter == 0
 
     def compute_reward(self, robot: Robot):
-
         if self.__over_charge_station(robot.position):
             if self.all_waypoints_visited():
                 self.episode_continues = False

@@ -2,14 +2,14 @@ COMPLETE_REWARD = 1000
 WAYPOINT_REWARD = 100
 CHARGE_REWARD = 0
 EMPTY_REWARD = -1
+BORDER_REWARD = -100
 FAIL_REWARD = -200
-MAX_X = MAX_Y = 10
+MAX_X = MAX_Y = 20
 
 SIZE = 50
 WIDTH, HEIGTH = MAX_X * SIZE, MAX_Y * SIZE
 
 FRAME_DRAW_TIMER = .1
-EPSILON = 1/3
 
 REWARD_DISCOUNT = 0.9
 
@@ -19,11 +19,6 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-import numpy as np
-
-DIRECTIONS = np.array([[1,0], [0,1], [-1,0], [0, -1]], dtype='int32')
-
 N_WAYPOINTS = 10
 
 STEP_SIZE_RULE = lambda t: 1 / (t + 1)
-BORDER_REWARD = -100

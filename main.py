@@ -20,7 +20,7 @@ def choose_direction(direction, robot_position):
     d1 = np.array([dy, dx])
     d2 = -d1
     directions = [direction] + [d for d in [d1, d2] if is_allowed(d + robot_position)]
-    pmax = 0.9
+    pmax = 0.8
     probabilities = [pmax, 1-pmax] if len(directions) == 2 else [pmax, (1-pmax)/2, (1-pmax)/2]
     return random.choices(directions, probabilities)[0]
 
@@ -93,30 +93,31 @@ def experiment(seed, vf, title, nwaypoints = N_WAYPOINTS, charge_station_positio
 
 import matplotlib.pyplot as plt
 
-def plot_hist(values, bins=20):
-    values = np.array(values)
-    
-    plt.figure()
-    plt.hist(values, bins=bins)
-    plt.axvline(values.mean(), linestyle="dashed", label=f"mean = {values.mean():.3f}")
-    
-    plt.legend()
-    plt.xlabel("Value")
-    plt.ylabel("Frequency")
-    plt.title("Histogram")
-    plt.savefig(f'hist{bins}.png')
+def draw_aggregate_vf(vf, impath):
+    pos = [[[] for _ in range(MAX_X)] for _ in range(MAX_Y)]
 
-vf = ValueFunctionLambda(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
+    def mean(x):
+        if len(x) > 0:
+            return sum(x)/len(x)
+        return 0
+
+    for key, value in vf.value_dict.items():
+        x, y, _, _ = key
+        if value != 0:
+            pos[x][y].append(value)
+
+    for x in range(MAX_X):
+        for y in range(MAX_Y):
+            pos[x][y] = mean(pos[x][y])
+
+    plt.imshow(np.array(pos), cmap='inferno_r')
+    plt.colorbar()
+    plt.savefig(impath)
+    plt.clf()
+
+vf = ValueFunctionLambda(step_size_lambda=STEP_SIZE_RULE, reward_discount=0.5)
+draw_aggregate_vf(vf, 'vf0.png')
 drawing = False
-import numpy as np
-
-def plot_vf(vf: ValueFunction):
-    xs = np.array(list(vf.value_dict.values()))
-    xs.sort()
-    plt.scatter(list(range(len(xs))), xs)
-    plt.show()
-
-for it in range(100):
-    experiment(seed=42 + it, vf=vf, title='AAIR')
-
-plot_vf(vf)
+for it in range(10):
+    experiment(seed=42, vf=vf, title='AAIR')
+    draw_aggregate_vf(vf, f'vf{it}.png')

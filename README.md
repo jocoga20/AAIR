@@ -1,0 +1,1 @@
+This project emulates a robot moving in a grid world. 

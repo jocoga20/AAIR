@@ -8,7 +8,7 @@ class Robot:
         self.battery = full_battery
         self.full_battery = full_battery
     
-    def move(self, direction):
+    def move(self, direction: np.array):
         self.position += direction
         self.battery -= 1
     

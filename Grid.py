@@ -13,8 +13,15 @@ class Grid:
         self.waypoints_counter = waypoints.shape[0]
 
     @staticmethod
-    def random_generate(N: int, charge_station = np.zeros(2, 'int32')):
-        coords = np.random.choice(np.arange(1, MAX_X * MAX_Y), N, replace=False)
+    def __plane_pos_to_index(pos: np.array):
+        x, y = pos
+        return y * MAX_Y + x
+
+    @staticmethod
+    def random_generate(num_waypoints: int, charge_station = np.zeros(2, 'int32')):
+        i = Grid.__plane_pos_to_index(charge_station)
+        coords = np.arange(0, MAX_X * MAX_Y)
+        coords = np.random.choice(coords[coords != i], num_waypoints, replace=False)
         coords = np.column_stack((coords // MAX_X, coords % MAX_Y))
         return Grid(coords, charge_station)
     

@@ -19,7 +19,6 @@ def plot_values(values, bins=20):
     plt.show()
 #    plt.savefig(f'hist{bins}.png')
 
-vf = ValueFunctionLambda(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
 import numpy as np
 from sklearn.decomposition import PCA
 
@@ -43,6 +42,9 @@ def plot_vf(vf: ValueFunction):
 
     fig.colorbar(sc, ax=ax)
     plt.show()
+
+
+vf = ValueFunctionLambda(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
 
 for it in range(100):
     experiment_draw(seed=42 + it, value_function=vf, num_waypoints=5)

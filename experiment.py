@@ -1,5 +1,5 @@
 from ValueFunction import ValueFunction
-import policies
+from policies import secure_policy as mypolicy
 from utils import *
 from time import sleep
 
@@ -10,7 +10,7 @@ def experiment(num_waypoints: int, seed: int, value_function: ValueFunction, cha
     score = 0
 
     while grid.episode_continues:
-        direction = policies.pedant_policy(grid, robot)
+        direction = mypolicy(grid, robot)
         direction = choose_direction(direction, robot.position)
         robot.move(direction)
 
@@ -37,7 +37,7 @@ def experiment_draw(num_waypoints: int, seed: int, value_function: ValueFunction
         grid.draw_charge_station(screen)
         grid.draw_waypoints(screen)
 
-        direction = policies.pedant_policy(grid, robot)
+        direction = mypolicy(grid, robot)
         direction = choose_direction(direction, robot.position)
         robot.move(direction)
 

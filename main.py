@@ -8,16 +8,14 @@ from experiment import *
 
 import matplotlib.pyplot as plt
 
-def plot_hist(values, bins=20):
+def plot_values(values, bins=20):
     values = np.array(values)
     plt.figure()
-    plt.scatter(list(range(len(values))), values, s=1)
-    plt.axhline(values.mean(), linestyle="dashed", label=f"mean = {values.mean():.3f}")
+    plt.hist(values, bins)
+#    plt.scatter(list(range(len(values))), values, s=1)
+    plt.axvline(values.mean(), linestyle="dashed", label=f"mean = {values.mean():.3f}", color='red')
     
     plt.legend()
-    plt.xlabel("Value")
-    plt.ylabel("Frequency")
-    plt.title("Histogram")
     plt.show()
 #    plt.savefig(f'hist{bins}.png')
 
@@ -47,9 +45,9 @@ def plot_vf(vf: ValueFunction):
     plt.show()
 
 for it in range(100):
-    experiment(seed=42 + it, value_function=vf, num_waypoints=5)
+    experiment_draw(seed=42 + it, value_function=vf, num_waypoints=5)
 
 xs = list(vf.value_dict.values())
-xs = sorted(xs)
+#xs = sorted(xs)
 
-plot_hist(xs, bins=40)
+plot_values(xs, bins=40)

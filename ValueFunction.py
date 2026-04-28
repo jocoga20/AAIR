@@ -4,12 +4,23 @@ class ValueFunction:
         self.value_dict = {}
         self.step_size_lambda = step_size_lambda
         self.reward_discount = reward_discount
+    
+    def init_state_monitor(self, keys: list):
+        self.monitored_states = {}
+        for k in keys:
+            self.monitored_states[k] = [0]
+    
+    def monitor_state(self, key, value):
+        if key in self.monitored_states.keys():
+            self.monitored_states[key].append(value)
 
     def update(self, old_state_key, new_state_key, reward):
         v1 = self.get(old_state_key)
         v2 = self.get(new_state_key)
         
-        self.value_dict[old_state_key] = v1 + self.step_size_lambda(self.t) * (reward + self.reward_discount * v2 - v1)
+        new_value = v1 + self.step_size_lambda(self.t) * (reward + self.reward_discount * v2 - v1)
+        self.value_dict[old_state_key] = new_value
+        self.monitor_state(old_state_key, new_value)
         self.t += 1
     
     def get(self, key):

@@ -17,5 +17,7 @@ class ValueFunctionLambda(ValueFunction):
         self.eligibility.increase_skipped_updates()
         e = self.eligibility.get_eligibility(old_state_key)
         
-        self.value_dict[old_state_key] = v1 + self.step_size_lambda(self.t) * e * (reward + self.reward_discount * v2 - v1)
+        new_value = v1 + self.step_size_lambda(self.t) * e * (reward + self.reward_discount * v2 - v1)
+        self.value_dict[old_state_key] = new_value
+        self.monitor_state(old_state_key, new_value)
         self.t += 1

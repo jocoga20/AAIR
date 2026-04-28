@@ -19,13 +19,13 @@ class Experiment:
         random.seed(seed)
         np.random.seed(seed)
     
-    def __init_ambient(self):
+    def __init_ambient(self) -> tuple[Grid, Robot]:
         """
         This function returns a Grid and a Robot instance.
         Modifiy this function to customize the beginning of the experiment.
         """
         x, y = self.charge_station
-        robot = Robot(x=x, y=y, full_battery=(MAX_X + MAX_Y)*2)
+        robot = Robot(x=x, y=y, full_battery=FULL_BATTERY)
         grid = Grid.random_generate(self.num_waypoints, self.charge_station)
         return grid, robot
     
@@ -50,13 +50,13 @@ class Experiment:
 
     def run(self, seed: int, policy):
         self.__set_seed(seed)
-        grid, robot = self.__init_ambient(self.num_waypoints, self.charge_station)
+        grid, robot = self.__init_ambient()
         s0 = state_key(robot, grid)
         score = 0
 
         while grid.episode_continues:
             direction = policy(grid, robot)
-            direction = self.choose_direction(policy)
+            direction = self.choose_direction(direction, robot.position)
             robot.move(direction)
 
             reward = grid.compute_reward(robot)
@@ -89,10 +89,10 @@ class Experiment:
                 return True
         return False
 
-    def run_draw(self, seed: int, title = None):
+    def run_draw(self, seed: int, policy, title = None):
         if title is None:
             title = f'Seed {seed}'
-        grid, robot = self.__init_ambient(self.num_waypoints, self.charge_station)
+        grid, robot = self.__init_ambient()
         s0 = state_key(robot, grid)
         score = 0
 
@@ -103,7 +103,7 @@ class Experiment:
             grid.draw_charge_station(screen)
             grid.draw_waypoints(screen)
 
-            direction = mypolicy(grid, robot)
+            direction = policy(grid, robot)
             direction = self.choose_direction(direction, robot.position)
             robot.move(direction)
 
@@ -120,10 +120,10 @@ class Experiment:
         
         return score, grid.mission_complete
    
-    def run_draw_number_grid(self, seed: int, title = None):
+    def run_draw_number_grid(self, seed: int, policy, title = None):
         if title is None:
             title = f'Seed {seed}'
-        grid, robot = self.__init_ambient(self.num_waypoints, self.charge_station)
+        grid, robot = self.__init_ambient()
         s0 = state_key(robot, grid)
         score = 0
 
@@ -131,10 +131,15 @@ class Experiment:
 
         while grid.episode_continues and not self.__quitted_pygame():
             robot.erase(screen)
+            for x in range(MAX_X):
+                for y in range(MAX_Y):
+                    if np.all(robot.position == [x, y]):
+                        robot.draw(screen)
+                    
             grid.draw_charge_station(screen)
             grid.draw_waypoints(screen)
 
-            direction = mypolicy(grid, robot)
+            direction = policy(grid, robot)
             direction = self.choose_direction(direction, robot.position)
             robot.move(direction)
 

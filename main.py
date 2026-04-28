@@ -4,6 +4,7 @@ from ValueFunctionLambda import ValueFunctionLambda
 from config import *
 from utils import *
 from experiment import *
+import policies
 
 
 import matplotlib.pyplot as plt
@@ -44,12 +45,10 @@ def plot_vf(vf: ValueFunction):
     plt.show()
 
 
-vf = ValueFunctionLambda(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
+vf = ValueFunction(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
+vf.init_state_monitor([(0,0,FULL_BATTERY,0), (1,1,16,17), (4,19,57,24), (16,6,38,16)])
+ex = Experiment(num_waypoints=5, value_function=vf)
+for it in range(500):
+    ex.run(42 + it, policies.pedant_policy)
 
-for it in range(100):
-    experiment_draw(seed=42 + it, value_function=vf, num_waypoints=5)
-
-xs = list(vf.value_dict.values())
-xs = sorted(xs)
-
-plot_values(xs)
+print(vf.monitored_states.values())

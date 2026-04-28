@@ -2,6 +2,9 @@ from ValueFunction import ValueFunction
 from policies import pedant_policy as mypolicy
 from utils import *
 from time import sleep
+import random
+import numpy as np
+import pygame as pg
 
 class Experiment:
     def __init__(self, num_waypoints: int, value_function: ValueFunction, charge_station = np.zeros(2, 'int32')):
@@ -9,24 +12,24 @@ class Experiment:
         self.value_function = value_function
         self.charge_station = charge_station
     
-    def set_seed(self, seed):
+    def __set_seed(self, seed):
         """
         Sets all the seeds needed to reproduce the experiment.
         """
         random.seed(seed)
         np.random.seed(seed)
     
-    def init_ambient(self, num_waypoints: int, charge_station: np.array):
+    def __init_ambient(self):
         """
         This function returns a Grid and a Robot instance.
         Modifiy this function to customize the beginning of the experiment.
         """
-        x, y = charge_station
+        x, y = self.charge_station
         robot = Robot(x=x, y=y, full_battery=(MAX_X + MAX_Y)*2)
-        grid = Grid.random_generate(num_waypoints, charge_station)
+        grid = Grid.random_generate(self.num_waypoints, self.charge_station)
         return grid, robot
     
-    def is_allowed(p):
+    def is_allowed(self, p: np.array):
         x, y = p
         return 0 <= x and x < MAX_X and 0 <= y and y < MAX_Y
 
@@ -46,8 +49,8 @@ class Experiment:
         return random.choices(directions, probabilities)[0]
 
     def run(self, seed: int, policy):
-        self.set_seed(seed)
-        grid, robot = self.init_ambient(self.num_waypoints, self.charge_station)
+        self.__set_seed(seed)
+        grid, robot = self.__init_ambient(self.num_waypoints, self.charge_station)
         s0 = state_key(robot, grid)
         score = 0
 
@@ -63,7 +66,7 @@ class Experiment:
             s0 = s1
         return score, grid.mission_complete
 
-    def init_graphics(self, title):
+    def __init_graphics(self, title):
         """
         This function only runs when in drawing mode. 
         """
@@ -79,23 +82,23 @@ class Experiment:
             pg.draw.line(screen, BLACK, (x, 0), (x, HEIGTH))
         return screen
 
-    def quitted_pygame(self):
+    def __quitted_pygame(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
                 return True
         return False
 
-    def run_draw(self, seed: int, policy, title = None):
+    def run_draw(self, seed: int, title = None):
         if title is None:
             title = f'Seed {seed}'
-        grid, robot = self.init_ambient(self.num_waypoints, self.charge_station)
+        grid, robot = self.__init_ambient(self.num_waypoints, self.charge_station)
         s0 = state_key(robot, grid)
         score = 0
 
-        screen = self.init_graphics()
+        screen = self.__init_graphics()
 
-        while grid.episode_continues and not self.quitted_pygame():
+        while grid.episode_continues and not self.__quitted_pygame():
             robot.erase(screen)
             grid.draw_charge_station(screen)
             grid.draw_waypoints(screen)
@@ -116,11 +119,34 @@ class Experiment:
             sleep(FRAME_DRAW_TIMER)
         
         return score, grid.mission_complete
-    
-    def run_draw_number_grid(self, seed: int, policy, title = None):
+   
+    def run_draw_number_grid(self, seed: int, title = None):
         if title is None:
             title = f'Seed {seed}'
-            # TODO:
-            # - refactor intelligente per experiment e experiment draw
-            # - griglia value function
-            # - k stati di riferimento e plotto come evolve nel corso degli episodi (per mostrare convergenza)
+        grid, robot = self.__init_ambient(self.num_waypoints, self.charge_station)
+        s0 = state_key(robot, grid)
+        score = 0
+
+        screen = self.__init_graphics()
+
+        while grid.episode_continues and not self.__quitted_pygame():
+            robot.erase(screen)
+            grid.draw_charge_station(screen)
+            grid.draw_waypoints(screen)
+
+            direction = mypolicy(grid, robot)
+            direction = self.choose_direction(direction, robot.position)
+            robot.move(direction)
+
+            robot.draw(screen)
+
+            reward = grid.compute_reward(robot)
+            score += REWARD_DISCOUNT * reward
+            s1 = state_key(robot, grid)
+            self.value_function.update(s0, s1, reward)
+            s0 = s1
+
+            pg.display.flip()
+            sleep(FRAME_DRAW_TIMER)
+        
+        return score, grid.mission_complete

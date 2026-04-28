@@ -2,8 +2,11 @@ import numpy as np
 import pygame as pg
 from Grid import Grid
 from Robot import Robot
+from ValueFunction import ValueFunction
 from config import *
 from time import sleep
+
+from utils import state_key
 
 class NoRender:
     def __init__(self): pass
@@ -44,12 +47,28 @@ class DrawRender(NoRender):
         sleep(FRAME_DRAW_TIMER)
 
 class DrawRenderValueFunction(DrawRender):
-    def __init__(self):
+    def __init__(self, value_function: ValueFunction):
         super().__init__()
+        self.value_function = value_function
+        self.font = pg.font.Font(None, 16)
+        self.texts = [[self.font.render(str(0), True, BLACK, WHITE)  for y in range(MAX_Y)] for x in range(MAX_X)]
+
+    def index_to_pos(self, i):
+        return SIZE * (i + 0.5)
     
-    def before_move(self, grid: Grid, robot: Robot):
+    def draw_value(self, x, y, value):
+        cx = self.index_to_pos(x)
+        cy = self.index_to_pos(y)
+        self.texts[x][y] = self.font.render(str(value), True, BLACK, WHITE)
+        self.screen.blit(self.texts[x][y], (cx, cy))
+
+    def after_move(self, grid: Grid, robot: Robot):
+        robot.draw(self.screen)
         for x in range(MAX_X):
             for y in range(MAX_Y):
-                if np.all(robot.position == (x, y)):
-                    robot.draw()
-                    # TODO: disegna numeri value function
+                wid = state_key(robot, grid)[-1]
+                value = self.value_function.get((x,y,robot.battery,wid))
+                
+                self.draw_value(x, y, value)
+        pg.display.flip()
+        sleep(FRAME_DRAW_TIMER)

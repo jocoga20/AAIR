@@ -1,0 +1,1 @@
+trova stati più visitati con almeno un waypoint preso

@@ -46,11 +46,27 @@ def plot_vf(vf: ValueFunction):
 
 
 vf = ValueFunction(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
-vf.init_state_monitor([(0,0,FULL_BATTERY,0), (1,1,16,17), (4,19,57,24), (16,6,38,16)])
+most_visiteds = [(0, 0, 80, 0), (0, 1, 79, 0), (1, 0, 79, 0), (0, 2, 78, 0), (2, 0, 78, 0), (0, 3, 77, 0), (1, 1, 78, 0), (3, 0, 77, 0), (0, 4, 76, 0), (1, 2, 77, 0), (4, 0, 76, 0), (2, 1, 77, 0), (1, 3, 76, 0), (0, 5, 75, 0), (3, 1, 76, 0), (1, 4, 75, 0), (4, 1, 75, 0), (5, 0, 75, 0), (1, 5, 74, 0)]
+vf.init_state_monitor(most_visiteds)
+
 ex = Experiment(num_waypoints=5, value_function=vf)
-render = DrawRenderValueFunction(vf)
-for it in range(500):
-    render.set_title(f'Seed {42+it}')
+#render = DrawRenderValueFunction(vf)
+render = NoRender()
+
+for it in range(8_000):
+#    render.set_title(f'Seed {42+it}')
     ex.run(42 + it, policies.pedant_policy, render)
 
-print(vf.monitored_states.values())
+def key_to_title(key):
+    x, y, b, w = key
+    w = "{0:b}".format(w)
+    w = w[::-1]
+    return (x, y, b, w)
+
+def plot_state_values(i, key, values):
+    plt.plot(values)
+    plt.title(f'{i} {key_to_title(key)}')
+    plt.show()
+
+for i, (k, v) in enumerate(vf.monitored_states.items()):
+    plot_state_values(i, k, v)

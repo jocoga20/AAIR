@@ -4,9 +4,9 @@ class ValueFunction:
         self.value_dict = {}
         self.step_size_lambda = step_size_lambda
         self.reward_discount = reward_discount
+        self.monitored_states = {}
     
     def init_state_monitor(self, keys: list):
-        self.monitored_states = {}
         for k in keys:
             self.monitored_states[k] = [0]
     

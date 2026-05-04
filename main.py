@@ -46,14 +46,14 @@ def plot_vf(vf: ValueFunction):
 
 
 vf = ValueFunction(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
-most_visiteds = [(0, 0, 80, 0), (0, 1, 79, 0), (1, 0, 79, 0), (0, 2, 78, 0), (2, 0, 78, 0), (0, 3, 77, 0), (1, 1, 78, 0), (3, 0, 77, 0), (0, 4, 76, 0), (1, 2, 77, 0), (4, 0, 76, 0), (2, 1, 77, 0), (1, 3, 76, 0), (0, 5, 75, 0), (3, 1, 76, 0), (1, 4, 75, 0), (4, 1, 75, 0), (5, 0, 75, 0), (1, 5, 74, 0)]
+most_visiteds = [(0, 0, 80, 9), (0, 0, 80, 0), (7, 6, 13, 31), (11, 1, 68, 0)]
 vf.init_state_monitor(most_visiteds)
 
 ex = Experiment(num_waypoints=5, value_function=vf)
-#render = DrawRenderValueFunction(vf)
-render = NoRender()
+render = DrawRenderValueFunction(vf)
 
-for it in range(8_000):
+
+for it in range(10):
 #    render.set_title(f'Seed {42+it}')
     ex.run(42 + it, policies.pedant_policy, render)
 

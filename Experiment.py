@@ -12,6 +12,7 @@ class Experiment:
         self.num_waypoints = num_waypoints
         self.value_function = value_function
         self.charge_station = charge_station
+        self.grid = Grid.random_generate(self.num_waypoints, self.charge_station)
     
     def __set_seed(self, seed):
         """
@@ -27,8 +28,8 @@ class Experiment:
         """
         x, y = self.charge_station
         robot = Robot(x=x, y=y, full_battery=FULL_BATTERY)
-        grid = Grid.random_generate(self.num_waypoints, self.charge_station)
-        return grid, robot
+        #grid = Grid.random_generate(self.num_waypoints, self.charge_station)
+        return self.grid, robot
     
     def is_allowed(self, p: np.array):
         x, y = p

@@ -50,12 +50,14 @@ most_visiteds = [(0, 0, 80, 9), (0, 0, 80, 0), (7, 6, 13, 31), (11, 1, 68, 0)]
 vf.init_state_monitor(most_visiteds)
 
 ex = Experiment(num_waypoints=5, value_function=vf)
-render = DrawRenderValueFunction(vf)
 
+norender = NoRender()
 
-for it in range(10):
+for it in range(100):
 #    render.set_title(f'Seed {42+it}')
-    ex.run(42 + it, policies.pedant_policy, render)
+    ex.run(42, policies.pedant_policy, norender)
+
+#render = DrawRenderValueFunction(vf)
 
 def key_to_title(key):
     x, y, b, w = key

@@ -93,3 +93,9 @@ class Grid:
         for w in self.waypoints:
             x, y = w
             pg.draw.rect(screen, BLUE, (x*SIZE+1, y*SIZE+1, SIZE-1, SIZE-1))
+    
+    def has_waypoint_at(self, x, y):
+        if self.all_waypoints_visited():
+            return False
+        ds = self.__distances_from_waypoints(np.array([x,y]))
+        return (ds == 0).any()

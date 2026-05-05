@@ -50,55 +50,50 @@ class DrawRenderValueFunction(DrawRender):
     def __init__(self, value_function: ValueFunction):
         super().__init__()
         self.value_function = value_function
-        self.font = pg.font.Font(None, 18)
+        self.font = pg.font.Font(None, 20)
 
         # cache: (x,y) -> (value, surface)
         self.text_cache = {}
 
-    def draw_value(self, x, y, value):
+    def draw_value(self, x, y, value, bgcolor):
         key = (x, y)
         cached = self.text_cache.get(key)
 
-        # aggiorna solo se cambia valore
         if cached is None or cached[0] != value:
-            surf = self.font.render(f"{value:.1f}", True, BLACK)
+            surf = self.font.render(f"{value:.1e}", True, BLACK)
             self.text_cache[key] = (value, surf)
         else:
             surf = cached[1]
 
         # rettangolo cella
-        rect = pg.Rect(x * SIZE, y * SIZE, SIZE, SIZE)
+        rect = pg.Rect(x * SIZE+1, y * SIZE+1, SIZE-1, SIZE-1)
 
         # pulizia locale (evita sovrapposizione)
-        pg.draw.rect(self.screen, WHITE, rect)
-        pg.draw.rect(self.screen, BLACK, rect, 1)
+        pg.draw.rect(self.screen, bgcolor, rect)
 
         # posizione testo (leggermente centrata)
-        cx = x * SIZE + SIZE * 0.2
-        cy = y * SIZE + SIZE * 0.2
+        cx = x * SIZE + SIZE * 0.1
+        cy = y * SIZE + SIZE * 0.4
 
         self.screen.blit(surf, (cx, cy))
 
+    def before_move(self, grid, robot):
+        robot.erase(self.screen)
+
     def after_move(self, grid: Grid, robot: Robot):
-        # ridisegna elementi dinamici sopra la griglia
-        grid.draw_charge_station(self.screen)
-        grid.draw_waypoints(self.screen)
-        robot.draw(self.screen)
-
-        # stato globale coerente
-        _, _, _, wid = state_key(robot, grid)
-        battery = robot.battery
-
+        _, _, battery, wid = state_key(robot, grid)
         # disegno valori
         for x in range(MAX_X):
             for y in range(MAX_Y):
-                state = (x, y, battery, wid)
-                value = self.value_function.get(state)
+                bgcolor = WHITE
+                if robot.position[0] == x and robot.position[1] == y:
+                    bgcolor = RED
+                elif grid.charge_station[0] == x and grid.charge_station[1] == y:
+                    bgcolor = GREEN
+                elif grid.has_waypoint_at(x, y):
+                    bgcolor = BLUE
 
-                if value is None:
-                    value = 0
-
-                self.draw_value(x, y, value)
-
+                value = self.value_function.get((x, y, battery, wid))
+                self.draw_value(x, y, value, bgcolor)
         pg.display.flip()
         sleep(FRAME_DRAW_TIMER)

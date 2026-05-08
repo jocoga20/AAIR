@@ -1,10 +1,7 @@
 from ValueFunction import ValueFunction
-from policies import pedant_policy as mypolicy
 from utils import *
-from time import sleep
 import random
 import numpy as np
-import pygame as pg
 from render import *
 
 class Experiment:
@@ -12,7 +9,6 @@ class Experiment:
         self.num_waypoints = num_waypoints
         self.value_function = value_function
         self.charge_station = charge_station
-        self.grid = Grid.random_generate(self.num_waypoints, self.charge_station)
     
     def __set_seed(self, seed):
         """
@@ -27,9 +23,9 @@ class Experiment:
         Modifiy this function to customize the beginning of the experiment.
         """
         x, y = self.charge_station
+        grid = Grid.random_generate(self.num_waypoints, self.charge_station)
         robot = Robot(x=x, y=y, full_battery=FULL_BATTERY)
-        #grid = Grid.random_generate(self.num_waypoints, self.charge_station)
-        return self.grid, robot
+        return grid, robot
     
     def is_allowed(self, p: np.array):
         x, y = p
@@ -50,7 +46,7 @@ class Experiment:
         probabilities = [pmax, 1-pmax] if len(directions) == 2 else [pmax, (1-pmax)/2, (1-pmax)/2]
         return random.choices(directions, probabilities)[0]
 
-    def run(self, seed: int, policy, render = NoRender()):
+    def run(self, seed: int, policy, render: NoRender):
         self.__set_seed(seed)
         grid, robot = self.__init_ambient()
         s0 = state_key(robot, grid)

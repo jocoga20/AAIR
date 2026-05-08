@@ -19,12 +19,11 @@ class DrawRender(NoRender):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGTH))
         self.screen.fill(WHITE)
-
-        for y in range(0, HEIGTH, SIZE):
-            pg.draw.line(self.screen, BLACK, (0, y), (WIDTH, y))
-            
         for x in range(0, WIDTH, SIZE):
             pg.draw.line(self.screen, BLACK, (x, 0), (x, HEIGTH))
+        
+        for y in range(0, HEIGTH, SIZE):
+            pg.draw.line(self.screen, BLACK, (0, y), (WIDTH, y))
     
     def set_title(self, title):
         pg.display.set_caption(title)
@@ -51,8 +50,6 @@ class DrawRenderValueFunction(DrawRender):
         super().__init__()
         self.value_function = value_function
         self.font = pg.font.Font(None, 20)
-
-        # cache: (x,y) -> (value, surface)
         self.text_cache = {}
 
     def draw_value(self, x, y, value, bgcolor):
@@ -64,8 +61,7 @@ class DrawRenderValueFunction(DrawRender):
             self.text_cache[key] = (value, surf)
         else:
             surf = cached[1]
-
-        # rettangolo cella
+            
         rect = pg.Rect(x * SIZE+1, y * SIZE+1, SIZE-1, SIZE-1)
 
         # pulizia locale (evita sovrapposizione)

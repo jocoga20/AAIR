@@ -25,4 +25,4 @@ for it in tqdm(range(10_000)):
 
 print('Plot')
 for i, (k, v) in enumerate(vf.monitored_states.items()):
-    plot_state_values(i, k, v, f'imgs/{i}.png')
+    plot_state_values(i, k, v, f'imgs/zerowids/{i}.png')

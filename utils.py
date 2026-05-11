@@ -48,4 +48,6 @@ def plot_state_values(i, key, values, path=None):
     if path is None:
         plt.show()
     else:
+        print(f'Saved {path}')
         plt.savefig(path)
+    plt.clf()

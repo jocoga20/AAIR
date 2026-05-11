@@ -11,7 +11,7 @@ class ValueFunction:
             self.monitored_states[k] = [0]
     
     def monitor_state(self, key, value):
-        if key in self.monitored_states.keys():
+        if key[-1] in {1, 2, 4, 8, 16}:
             self.monitored_states[key].append(value)
 
     def update(self, old_state_key, new_state_key, reward):

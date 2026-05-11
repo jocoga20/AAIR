@@ -8,8 +8,8 @@ from Experiment import *
 import policies
 
 vf = ValueFunction(step_size_lambda=STEP_SIZE_RULE, reward_discount=REWARD_DISCOUNT)
-most_visiteds = [(0, 0, 80, 0), (0, 1, 79, 0), (1, 0, 79, 0), (0, 2, 78, 0)]
-vf.init_state_monitor(most_visiteds)
+#most_visiteds = [(0, 0, 80, 0), (0, 1, 79, 0), (1, 0, 79, 0), (0, 2, 78, 0)]
+#vf.init_state_monitor(most_visiteds)
 
 ex = Experiment(num_waypoints=5, value_function=vf)
 
@@ -25,4 +25,4 @@ for it in tqdm(range(10_000)):
 
 print('Plot')
 for i, (k, v) in enumerate(vf.monitored_states.items()):
-    plot_state_values(i, k, v)
+    plot_state_values(i, k, v, f'imgs/{i}.png')

@@ -45,7 +45,7 @@ class DrawRender(NoRender):
         pg.display.flip()
         sleep(FRAME_DRAW_TIMER)
 
-class DrawRenderValueFunction(DrawRender):
+class TimePlotRender(DrawRender):
     def __init__(self, value_function: ValueFunction):
         super().__init__()
         self.value_function = value_function
@@ -57,7 +57,9 @@ class DrawRenderValueFunction(DrawRender):
         cached = self.text_cache.get(key)
 
         if cached is None or cached[0] != value:
-            surf = self.font.render(f"{value:.1e}", True, BLACK)
+            fmt_value = f"{value:.0e}"
+            fmt_value = fmt_value.replace("e+0", "e").replace("e+", "e").replace("e-0", "e-")
+            surf = self.font.render(fmt_value, True, BLACK)
             self.text_cache[key] = (value, surf)
         else:
             surf = cached[1]

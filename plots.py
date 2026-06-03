@@ -1,3 +1,5 @@
+import os
+
 from matplotlib import pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
@@ -40,6 +42,9 @@ def plot_state_values(key, values, path=None):
     if path is None:
         plt.show()
     else:
+        dirname = os.path.dirname(path)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
         print(f'Saved {path}')
         plt.savefig(path)
     plt.clf()

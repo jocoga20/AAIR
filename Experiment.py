@@ -46,7 +46,7 @@ class Experiment:
         probabilities = [pmax, 1-pmax] if len(directions) == 2 else [pmax, (1-pmax)/2, (1-pmax)/2]
         return random.choices(directions, probabilities)[0]
 
-    def run(self, seed: int, policy, render: NoRender):
+    def run(self, seed: int, policy, render: NoRender, pmax: float = 0.9):
         self.__set_seed(seed)
         grid, robot = self.__init_ambient()
         s0 = state_key(robot, grid)
@@ -56,7 +56,7 @@ class Experiment:
             render.before_move(grid, robot)
             
             direction = policy(grid, robot)
-            direction = self.choose_direction(direction, robot.position, pmax=1)
+            direction = self.choose_direction(direction, robot.position, pmax=pmax)
             robot.move(direction)
 
             reward = grid.compute_reward(robot)

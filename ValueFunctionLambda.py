@@ -28,3 +28,6 @@ class ValueFunctionLambda(ValueFunction):
             self.update_state(key=state, value=old_value + et * td_error)
 
         self.t += 1
+    
+    def autoname_path(self):
+        return f'vfl{self.eligibility.decay}.{self.reward_discount}rd.pkl'

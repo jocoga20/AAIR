@@ -10,11 +10,8 @@ class ValueFunction:
         self.reward_discount = reward_discount
     
     def update_state(self, key, value):
-        if key in self.values_dict.keys():
-            self.values_dict[key].append(value)
-        else:
-            self.values_dict[key] = [0, value]
-
+        self.values_dict.setdefault(key, [0]).append(value)
+        
     def update(self, old_state_key, new_state_key, reward):
         v1 = self.get(old_state_key)
         v2 = self.get(new_state_key)
@@ -24,13 +21,22 @@ class ValueFunction:
         self.t += 1
     
     def get(self, key):
-        values = self.values_dict.get(key, [0])
-        return values[-1]
+        values = self.values_dict.get(key)
+        return 0 if values is None else values[-1]
     
-    def save(self, path):
+    def autoname_path(self):
+        return f'vf.{self.reward_discount}rd.pkl'
+
+    def save(self, path='vfs', filename=None):
+        if filename is None:
+            filename = self.autoname_path()
+        path = f'{path}/{filename}'
         save(path, self.values_dict)
+        print(f'Saved {path}')
         return self
     
-    def load(self, path):
-        self.values_dict = load(path)
+    def load(self, path='vfs', filename=None):
+        if filename is None:
+            filename = self.autoname_path()
+        self.values_dict = load(f'{path}/{filename}')
         return self

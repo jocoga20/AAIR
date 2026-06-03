@@ -1,4 +1,5 @@
 from config import step_size_default_rule
+from fileutils import *
 
 
 class ValueFunction:
@@ -25,3 +26,11 @@ class ValueFunction:
     def get(self, key):
         values = self.values_dict.get(key, [0])
         return values[-1]
+    
+    def save(self, path):
+        save(path, self.values_dict)
+        return self
+    
+    def load(self, path):
+        self.values_dict = load(path)
+        return self

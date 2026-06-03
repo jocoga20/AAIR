@@ -56,7 +56,7 @@ class Experiment:
             render.before_move(grid, robot)
             
             direction = policy(grid, robot)
-            direction = self.choose_direction(direction, robot.position)
+            direction = self.choose_direction(direction, robot.position, pmax=1)
             robot.move(direction)
 
             reward = grid.compute_reward(robot)

@@ -1,9 +1,9 @@
-from config import step_size_default_rule
+from config import STEP_SIZE_DEFAULT_RULE
 from fileutils import *
 
 
 class ValueFunction:
-    def __init__(self, step_size_lambda = step_size_default_rule, reward_discount = 1):
+    def __init__(self, reward_discount: float = 1, step_size_lambda = STEP_SIZE_DEFAULT_RULE):
         self.t = 0
         self.values_dict = dict()
         self.step_size_lambda = step_size_lambda

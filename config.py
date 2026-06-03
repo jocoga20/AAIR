@@ -15,5 +15,4 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-def step_size_default_rule(t):
-    return 1 / (t + 1)
+STEP_SIZE_DEFAULT_RULE = lambda t: 1 / (t + 1)

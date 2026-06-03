@@ -2,14 +2,14 @@ import warnings
 
 from Eligibility import Eligibility
 from ValueFunction import ValueFunction
-from config import step_size_default_rule
+from config import STEP_SIZE_DEFAULT_RULE
 
 class ValueFunctionLambda(ValueFunction):
-    def __init__(self, step_size_lambda = step_size_default_rule, reward_discount = 1, eligibility_decay = 0.5):
+    def __init__(self, reward_discount = 1, eligibility_decay = 0.5, step_size_lambda = STEP_SIZE_DEFAULT_RULE):
         if eligibility_decay == 0:
             warnings.warn('If decay is zero it would be better to use ValueFunction class instead.', UserWarning)
-        super().__init__(step_size_lambda, reward_discount)
-        self.eligibility = Eligibility(decay=eligibility_decay * reward_discount)
+        super().__init__(reward_discount, step_size_lambda)
+        self.eligibility = Eligibility(decay = eligibility_decay * reward_discount)
 
     def update(self, old_state_key, new_state_key, reward):
         v1 = self.get(old_state_key)

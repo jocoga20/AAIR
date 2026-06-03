@@ -17,7 +17,7 @@ class Experiment:
         random.seed(seed)
         np.random.seed(seed)
     
-    def __init_ambient(self) -> tuple[Grid, Robot]:
+    def __init_robot_and_grid(self) -> tuple[Grid, Robot]:
         """
         This function returns a Grid and a Robot instance.
         Modifiy this function to customize the beginning of the experiment.
@@ -27,14 +27,14 @@ class Experiment:
         robot = Robot(x=x, y=y, full_battery=FULL_BATTERY)
         return grid, robot
     
-    def is_allowed(self, p: np.array):
+    def __allowed_position(self, p: np.array):
         x, y = p
         return 0 <= x and x < MAX_X and 0 <= y and y < MAX_Y
 
-    def choose_direction(self, direction: np.array, robot_position: np.array, pmax: float = 0.9):
+    def __choose_direction(self, direction: np.array, robot_position: np.array, pmax: float = 0.9):
         """
         Chooses between the main direction and one or more orthogonal direction(s).
-        A direction is allowed if it does not brings the robot outside the grid world.
+        A direction is allowed if it does not bring the robot outside the grid world.
         The main direction is always chosen with probability **pmax**.
         If there is one allowed orthogonal direction, probability of choosing it is **1 - pmax**.
         If there are two allowed orthogonal directions, probability of choosing each of them is **(1 - pmax)/2**.
@@ -42,13 +42,13 @@ class Experiment:
         dx, dy = direction
         d1 = np.array([dy, dx])
         d2 = -d1
-        directions = [direction] + [d for d in [d1, d2] if self.is_allowed(d + robot_position)]
+        directions = [direction] + [d for d in [d1, d2] if self.__allowed_position(d + robot_position)]
         probabilities = [pmax, 1-pmax] if len(directions) == 2 else [pmax, (1-pmax)/2, (1-pmax)/2]
         return random.choices(directions, probabilities)[0]
 
     def run(self, seed: int, policy, render: NoRender, pmax: float = 0.9):
         self.__set_seed(seed)
-        grid, robot = self.__init_ambient()
+        grid, robot = self.__init_robot_and_grid()
         s0 = state_key(robot, grid)
         score = 0
         
@@ -56,7 +56,7 @@ class Experiment:
             render.before_move(grid, robot)
             
             direction = policy(grid, robot)
-            direction = self.choose_direction(direction, robot.position, pmax=pmax)
+            direction = self.__choose_direction(direction, robot.position, pmax=pmax)
             robot.move(direction)
 
             reward = grid.compute_reward(robot)

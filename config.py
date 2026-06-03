@@ -2,7 +2,6 @@ COMPLETE_REWARD = 1000
 WAYPOINT_REWARD = 100
 CHARGE_REWARD = 0
 EMPTY_REWARD = -1
-BORDER_REWARD = -100
 FAIL_REWARD = -200
 MAX_X = MAX_Y = 20
 
@@ -15,8 +14,6 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
-
-N_WAYPOINTS = 10
 
 def step_size_default_rule(t):
     return 1 / (t + 1)

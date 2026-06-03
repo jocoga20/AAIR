@@ -9,17 +9,12 @@ class ValueFunction:
         self.reward_discount = reward_discount
         self.monitored_states = dict()
     
-    def init_state_monitor(self, keys: list):
-        for k in keys:
-            self.monitored_states[k] = [0]
-    
     def monitor_state(self, key, value):
-        wid = key[-1]
-        if wid == 0:
-            if key in self.monitored_states.keys():
-                self.monitored_states[key].append(value)
-            else:
-                self.monitored_states[key] = [value]
+        if key in self.monitored_states.keys():
+            self.monitored_states[key].append(value)
+        else:
+            self.monitored_states[key] = [0, value]
+
     def update(self, old_state_key, new_state_key, reward):
         v1 = self.get(old_state_key)
         v2 = self.get(new_state_key)

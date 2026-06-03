@@ -32,9 +32,11 @@ def key_to_title(key):
     w = w[::-1]
     return (x, y, b, w)
 
-def plot_state_values(i, key, values, path=None):
+def plot_state_values(key, values, path=None):
     plt.plot(values)
-    plt.title(f'{i} {key_to_title(key)}')
+    plt.title(key_to_title(key))
+    plt.xlabel('episode')
+    plt.ylabel('value')
     if path is None:
         plt.show()
     else:

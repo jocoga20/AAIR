@@ -9,8 +9,8 @@ import policies
 from fileutils import *
 
 vf = ValueFunction(reward_discount=0.9)
-#most_visiteds = [(0, 0, 80, 0), (0, 1, 79, 0), (1, 0, 79, 0), (0, 2, 78, 0)]
-#vf.init_state_monitor(most_visiteds)
+most_visiteds = [(0, 0, 80, 0), (0, 1, 79, 0), (1, 0, 79, 0), (0, 2, 78, 0)]
+vf.init_state_monitor(most_visiteds)
 
 ex = Experiment(num_waypoints=5, value_function=vf)
 
@@ -21,13 +21,14 @@ for i, vfbuild in enumerate(vfs):
     for pol_name, pol in pols:
         vf = vfbuild()
         ex = Experiment(num_waypoints=5, value_function=vf)
-        for it in tqdm(range(10_000)):
+        for it in tqdm(range(1)):
             ex.run(seed=42, policy=pol, render=norender)
         if i == 1:
             lam = vf.eligibility.decay
+            print(lam)
         else:
             lam = ''
-        save(f'vfs/vf{lam}rd09.10k.{pol_name}.pkl', vf)
+        #save(f'vfs/vf{lam}rd09.10k.{pol_name}.pkl', vf)
 exit()
 
 # print('Pre learn')

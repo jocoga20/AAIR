@@ -14,7 +14,8 @@ class NoRender:
     def after_move(self, grid: Grid, robot: Robot): pass
 
 class DrawRender(NoRender):
-    def __init__(self):
+    def __init__(self, frame_draw_time:float=0.5):
+        self.frame_draw_time = frame_draw_time
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGTH))
         self.screen.fill(WHITE)
@@ -42,11 +43,11 @@ class DrawRender(NoRender):
     def after_move(self, grid: Grid, robot: Robot):
         robot.draw(self.screen)
         pg.display.flip()
-        sleep(FRAME_DRAW_TIMER)
+        sleep(self.frame_draw_time)
 
 class TimePlotRender(DrawRender):
-    def __init__(self, value_function: ValueFunction):
-        super().__init__()
+    def __init__(self, value_function: ValueFunction, frame_draw_time: float=0.5):
+        super().__init__(frame_draw_time)
         self.value_function = value_function
         self.font = pg.font.Font(None, 20)
         self.text_cache = {}
@@ -90,4 +91,4 @@ class TimePlotRender(DrawRender):
                 value = self.value_function.get((x, y, battery, wid))
                 self.draw_value(x, y, value, bgcolor)
         pg.display.flip()
-        sleep(FRAME_DRAW_TIMER)
+        sleep(self.frame_draw_time)

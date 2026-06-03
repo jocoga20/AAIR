@@ -6,31 +6,37 @@ from config import *
 from utils import *
 from Experiment import *
 import policies
+from fileutils import *
 
-vf = ValueFunction(step_size_lambda=step_size_rule, reward_discount=REWARD_DISCOUNT)
+vf = ValueFunction(reward_discount=0.9)
 #most_visiteds = [(0, 0, 80, 0), (0, 1, 79, 0), (1, 0, 79, 0), (0, 2, 78, 0)]
 #vf.init_state_monitor(most_visiteds)
 
 ex = Experiment(num_waypoints=5, value_function=vf)
 
 norender = NoRender()
-
-print('Pre learn')
-for it in tqdm(range(10_000)):
-    ex.run(seed=42, policy=policies.pedant_policy, render=norender)
-
-import pickle
-def save(name, obj):
-    with open(name, 'wb') as f:
-        pickle.dump(obj, f)
-
-def load(name):
-    with open(name, 'rb') as f:
-        return pickle.load(f)
-
-save('vf.pkl', vf)
-vf = load('vf.pkl')
+vfs = [lambda: ValueFunction(reward_discount=0.9), lambda: ValueFunctionLambda(reward_discount=0.9)]
+pols = [('gp', policies.greedy_policy), ('pp', policies.pedant_policy), ('sp', policies.secure_policy)]
+for i, vfbuild in enumerate(vfs):
+    for pol_name, pol in pols:
+        vf = vfbuild()
+        ex = Experiment(num_waypoints=5, value_function=vf)
+        for it in tqdm(range(10_000)):
+            ex.run(seed=42, policy=pol, render=norender)
+        if i == 1:
+            lam = vf.eligibility.decay
+        else:
+            lam = ''
+        save(f'vfs/vf{lam}rd09.10k.{pol_name}.pkl', vf)
 exit()
+
+# print('Pre learn')
+# for it in tqdm(range(10_000)):
+#     ex.run(seed=42, policy=policies.pedant_policy, render=norender)
+from fileutils import *
+
+vf = load('vf.pkl')
+
 tprender = TimePlotRender(vf)
 print('Showing')
 for it in range(10):

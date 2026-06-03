@@ -60,7 +60,7 @@ class Experiment:
             robot.move(direction)
 
             reward = grid.compute_reward(robot)
-            score += REWARD_DISCOUNT * reward
+            score += self.value_function.reward_discount * reward
             s1 = state_key(robot, grid)
             self.value_function.update(s0, s1, reward)
             s0 = s1

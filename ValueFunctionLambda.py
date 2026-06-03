@@ -2,9 +2,10 @@ import warnings
 
 from Eligibility import Eligibility
 from ValueFunction import ValueFunction
+from config import step_size_rule
 
 class ValueFunctionLambda(ValueFunction):
-    def __init__(self, step_size_lambda, reward_discount = 1, eligibility_decay = 0.5):
+    def __init__(self, step_size_lambda=step_size_rule, reward_discount = 1, eligibility_decay = 0.5):
         if eligibility_decay == 0:
             warnings.warn('If decay is zero it would be better to use ValueFunction class instead.', UserWarning)
         super().__init__(step_size_lambda, reward_discount)

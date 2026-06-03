@@ -1,4 +1,3 @@
-import numpy as np
 import pygame as pg
 from Grid import Grid
 from Robot import Robot
@@ -57,7 +56,7 @@ class TimePlotRender(DrawRender):
         cached = self.text_cache.get(key)
 
         if cached is None or cached[0] != value:
-            fmt_value = f"{value:.0e}"
+            fmt_value = f"{value:.1e}"
             fmt_value = fmt_value.replace("e+0", "e").replace("e+", "e").replace("e-0", "e-")
             surf = self.font.render(fmt_value, True, BLACK)
             self.text_cache[key] = (value, surf)
@@ -66,10 +65,8 @@ class TimePlotRender(DrawRender):
             
         rect = pg.Rect(x * SIZE+1, y * SIZE+1, SIZE-1, SIZE-1)
 
-        # pulizia locale (evita sovrapposizione)
         pg.draw.rect(self.screen, bgcolor, rect)
 
-        # posizione testo (leggermente centrata)
         cx = x * SIZE + SIZE * 0.1
         cy = y * SIZE + SIZE * 0.4
 
@@ -80,7 +77,6 @@ class TimePlotRender(DrawRender):
 
     def after_move(self, grid: Grid, robot: Robot):
         _, _, battery, wid = state_key(robot, grid)
-        # disegno valori
         for x in range(MAX_X):
             for y in range(MAX_Y):
                 bgcolor = WHITE

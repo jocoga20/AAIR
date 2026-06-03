@@ -1,5 +1,8 @@
+from config import step_size_rule
+
+
 class ValueFunction:
-    def __init__(self, step_size_lambda, reward_discount = 1):
+    def __init__(self, step_size_lambda=step_size_rule, reward_discount = 1):
         self.t = 0
         self.value_dict = {}
         self.step_size_lambda = step_size_lambda

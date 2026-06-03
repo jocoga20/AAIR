@@ -18,5 +18,5 @@ BLUE = (0, 0, 255)
 
 N_WAYPOINTS = 10
 
-def step_size_rule(t):
+def step_size_default_rule(t):
     return 1 / (t + 1)

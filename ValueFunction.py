@@ -1,28 +1,27 @@
-from config import step_size_rule
+from config import step_size_default_rule
 
 
 class ValueFunction:
-    def __init__(self, step_size_lambda=step_size_rule, reward_discount = 1):
+    def __init__(self, step_size_lambda = step_size_default_rule, reward_discount = 1):
         self.t = 0
-        self.value_dict = {}
+        self.values_dict = dict()
         self.step_size_lambda = step_size_lambda
         self.reward_discount = reward_discount
-        self.monitored_states = dict()
     
-    def monitor_state(self, key, value):
-        if key in self.monitored_states.keys():
-            self.monitored_states[key].append(value)
+    def update_state(self, key, value):
+        if key in self.values_dict.keys():
+            self.values_dict[key].append(value)
         else:
-            self.monitored_states[key] = [0, value]
+            self.values_dict[key] = [0, value]
 
     def update(self, old_state_key, new_state_key, reward):
         v1 = self.get(old_state_key)
         v2 = self.get(new_state_key)
         
         new_value = v1 + self.step_size_lambda(self.t) * (reward + self.reward_discount * v2 - v1)
-        self.value_dict[old_state_key] = new_value
-        self.monitor_state(old_state_key, new_value)
+        self.update_state(old_state_key, new_value)
         self.t += 1
     
     def get(self, key):
-        return self.value_dict.get(key, 0)
+        values = self.values_dict.get(key, [0])
+        return values[-1]

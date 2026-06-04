@@ -5,7 +5,7 @@ import numpy as np
 from render import *
 
 class Experiment:
-    def __init__(self, num_waypoints: int, value_function: ValueFunction, charge_station = np.zeros(2, 'int32')):
+    def __init__(self, grid: Grid, num_waypoints: int, value_function: ValueFunction, charge_station = np.zeros(2, 'int32')):
         self.num_waypoints = num_waypoints
         self.value_function = value_function
         self.charge_station = charge_station
@@ -17,7 +17,7 @@ class Experiment:
         random.seed(seed)
         np.random.seed(seed)
     
-    def __init_ambient(self) -> tuple[Grid, Robot]:
+    def __init_ambient(self, grid_seed) -> tuple[Grid, Robot]:
         """
         This function returns a Grid and a Robot instance.
         Modifiy this function to customize the beginning of the experiment.

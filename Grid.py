@@ -4,13 +4,15 @@ from config import *
 import pygame as pg
 
 class Grid:
-    def __init__(self, waypoints: np.array, charge_station = np.zeros(2, 'int32')):
+    def __init__(self, waypoints: np.ndarray, charge_station = np.zeros(2, 'int32')):
         self.waypoints = waypoints
-        self.waypoints_status = 0
+        self.reset_visited_waypoints()
         self.charge_station = charge_station
         self.episode_continues = True
         self.mission_complete = False
         self.waypoints_counter = waypoints.shape[0]
+        # TODO: mask for waypoints
+        # in questo modo posso riutilizzare la stessa griglia resettando la mask
 
     @staticmethod
     def __plane_pos_to_index(pos: np.array):
@@ -18,12 +20,13 @@ class Grid:
         return y * MAX_Y + x
 
     @staticmethod
-    def random_generate(num_waypoints: int, charge_station = np.zeros(2, 'int32')):
-        i = Grid.__plane_pos_to_index(charge_station)
-        coords = np.arange(0, MAX_X * MAX_Y)
-        coords = np.random.choice(coords[coords != i], num_waypoints, replace=False)
-        coords = np.column_stack((coords // MAX_X, coords % MAX_Y))
-        return Grid(coords, charge_station)
+    def random_generate(num_waypoints: int, seed: int, charge_station = np.zeros(2, 'int32')):
+        np.random.seed(seed)
+        charge_station_idx = Grid.__plane_pos_to_index(charge_station)
+        indexes = np.arange(0, MAX_X * MAX_Y)
+        indexes = np.random.choice(indexes[indexes != charge_station_idx], num_waypoints, replace=False)
+        indexes = np.column_stack((indexes // MAX_X, indexes % MAX_Y))
+        return Grid(indexes, charge_station)
     
     def distance_between(self, first_position: np.array, second_position: np.array):
         return np.abs(first_position - second_position).sum()
@@ -99,3 +102,6 @@ class Grid:
             return False
         ds = self.__distances_from_waypoints(np.array([x,y]))
         return (ds == 0).any()
+    
+    def reset_visited_waypoints(self):
+        self.waypoints_mask = np.ones(shape=self.waypoints.shape[0])

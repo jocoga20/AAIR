@@ -1,9 +1,9 @@
-from config import STEP_SIZE_DEFAULT_RULE
+from config import step_size_default_rule
 from fileutils import *
 
 
 class ValueFunction:
-    def __init__(self, reward_discount: float = 1, step_size_lambda = STEP_SIZE_DEFAULT_RULE):
+    def __init__(self, step_size_lambda = step_size_default_rule, reward_discount = 1):
         self.t = 0
         self.values_dict = dict()
         self.step_size_lambda = step_size_lambda
@@ -24,19 +24,23 @@ class ValueFunction:
         values = self.values_dict.get(key)
         return 0 if values is None else values[-1]
     
-    def autoname_path(self):
-        return f'vf.{self.reward_discount}rd.pkl'
+    def _autoname_filepath(self):
+        return f'vfs/vf.{self.reward_discount}rd.pkl'
 
-    def save(self, path='vfs', filename=None):
-        if filename is None:
-            filename = self.autoname_path()
-        path = f'{path}/{filename}'
-        save(path, self.values_dict)
-        print(f'Saved {path}')
+    def save(self, filepath: str = None):
+        filepath = self.__filepath_logic(filepath)
+
+        save(filepath, self.values_dict)
+        print(f'Saved {filepath}')
         return self
     
-    def load(self, path='vfs', filename=None):
-        if filename is None:
-            filename = self.autoname_path()
-        self.values_dict = load(f'{path}/{filename}')
+    def load(self, filepath: str = None):
+        filepath = self.__filepath_logic(filepath)
+
+        self.values_dict = load(filepath)
         return self
+
+    def __filepath_logic(self, filepath: str):
+        if filepath is None:
+            filepath = self._autoname_filepath()
+        return filepath

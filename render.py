@@ -12,9 +12,13 @@ class NoRender:
     def quitted_pygame(self): return False
     def before_move(self, grid: Grid, robot: Robot): pass
     def after_move(self, grid: Grid, robot: Robot): pass
+    def paused(self): pass
+    def check_events(self): return self
 
 class DrawRender(NoRender):
     def __init__(self, frame_draw_time:float=0.5):
+        self.pause = False
+        self.quitted = False
         self.frame_draw_time = frame_draw_time
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGTH))
@@ -29,11 +33,23 @@ class DrawRender(NoRender):
         pg.display.set_caption(title)
 
     def quitted_pygame(self):
+        return self.quitted
+
+    def paused(self):
+        return self.pause
+
+    def check_events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                pg.quit()
-                return True
-        return False
+                self.quitted = True
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_p:
+                    self.pause = not self.pause
+                    print(f'Paused: {self.pause}')
+                elif event.key == pg.K_q:
+                    self.quitted = True
+
+        return self
     
     def before_move(self, grid: Grid, robot: Robot):
         robot.erase(self.screen)
@@ -44,6 +60,7 @@ class DrawRender(NoRender):
         robot.draw(self.screen)
         pg.display.flip()
         sleep(self.frame_draw_time)
+        
 
 class TimePlotRender(DrawRender):
     def __init__(self, value_function: ValueFunction, frame_draw_time: float=0.5):
@@ -58,11 +75,15 @@ class TimePlotRender(DrawRender):
 
         if cached is None or cached[0] != value:
             fmt_value = f"{value:.2e}"
-            fmt_value = fmt_value.replace("e+0", "e").replace("e+", "e").replace("e-0", "e-")
-            surf = self.font.render(fmt_value, True, BLACK)
-            self.text_cache[key] = (value, surf)
+            fmt_value = fmt_value\
+                .replace("e+0", "e")\
+                .replace("e+", "e")\
+                .replace("e-0", "e-")
+            
+            surface = self.font.render(fmt_value, True, BLACK)
+            self.text_cache[key] = (value, surface)
         else:
-            surf = cached[1]
+            surface = cached[1]
             
         rect = pg.Rect(x * SIZE+1, y * SIZE+1, SIZE-1, SIZE-1)
 
@@ -71,7 +92,7 @@ class TimePlotRender(DrawRender):
         cx = x * SIZE + SIZE * 0.1
         cy = y * SIZE + SIZE * 0.4
 
-        self.screen.blit(surf, (cx, cy))
+        self.screen.blit(surface, (cx, cy))
 
     def before_move(self, grid, robot):
         robot.erase(self.screen)

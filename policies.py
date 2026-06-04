@@ -24,9 +24,9 @@ def pedant_policy(grid: Grid, robot: Robot):
 def secure_policy(grid: Grid, robot: Robot):
     if grid.all_waypoints_visited():
         return grid.direction_to_charge_station(robot.position)
-    q = 3
+    margin = 3
     nw = grid.nearest_waypoint(robot.position)
-    if grid.distance_between(robot.position, nw) + grid.distance_from_charge_station(nw) <= robot.battery + q:
+    if grid.distance_between(robot.position, nw) + grid.distance_from_charge_station(nw) <= robot.battery + margin:
         return grid.direction_to(robot.position, nw)
     else:
         return grid.direction_to_charge_station(robot.position)

@@ -74,7 +74,7 @@ class TimePlotRender(DrawRender):
         cached = self.text_cache.get(key)
 
         if cached is None or cached[0] != value:
-            fmt_value = f"{value:.2e}"
+            fmt_value = f"{value:.1e}"
             fmt_value = fmt_value\
                 .replace("e+0", "e")\
                 .replace("e+", "e")\

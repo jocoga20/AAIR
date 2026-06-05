@@ -5,27 +5,14 @@ import numpy as np
 from render import *
 
 class Experiment:
-    def __init__(self, grid: Grid, num_waypoints: int, value_function: ValueFunction, charge_station = np.zeros(2, 'int32')):
+    def __init__(self, grid_seed: int, num_waypoints: int, value_function: ValueFunction, charge_station = np.zeros(2, 'int32')):
         self.num_waypoints = num_waypoints
         self.value_function = value_function
         self.charge_station = charge_station
-    
-    def __set_seed(self, seed):
-        """
-        Sets all the seeds needed to reproduce the experiment.
-        """
-        random.seed(seed)
-        np.random.seed(seed)
-    
-    def __init_ambient(self, grid_seed) -> tuple[Grid, Robot]:
-        """
-        This function returns a Grid and a Robot instance.
-        Modifiy this function to customize the beginning of the experiment.
-        """
-        x, y = self.charge_station
-        grid = Grid.random_generate(self.num_waypoints, self.charge_station)
-        robot = Robot(x=x, y=y, full_battery=FULL_BATTERY)
-        return grid, robot
+
+        self.grid = Grid.random_generate(num_waypoints=num_waypoints, seed=grid_seed, charge_station=charge_station)
+        x, y = charge_station
+        self.robot = Robot(x, y, FULL_BATTERY)
     
     def is_allowed(self, p: np.array):
         x, y = p
@@ -46,26 +33,31 @@ class Experiment:
         probabilities = [pmax, 1-pmax] if len(directions) == 2 else [pmax, (1-pmax)/2, (1-pmax)/2]
         return random.choices(directions, probabilities)[0]
 
-    def run(self, seed: int, policy, render: NoRender, pmax: float = 0.9):
-        self.__set_seed(seed)
-        grid, robot = self.__init_ambient()
-        s0 = state_key(robot, grid)
+    def reset_ambient(self):
+        self.grid.reset()
+        self.robot.reset(self.charge_station)
+
+    def run(self, robot_seed: int, policy, render: NoRender, pmax: float = 0.9):
+        self.reset_ambient()
+        random.seed(robot_seed)
+        s0 = state_key(self.robot, self.grid)
         score = 0
         
-        while grid.episode_continues and not render.check_events().quitted_pygame():
+        while self.grid.episode_continues and not render.check_events().quitted_pygame():
             if render.paused():
                 continue
-            render.before_move(grid, robot)
-            
-            direction = policy(grid, robot)
-            direction = self.choose_direction(direction, robot.position, pmax=pmax)
-            robot.move(direction)
 
-            reward = grid.compute_reward(robot)
+            render.before_move(self.grid, self.robot)
+            
+            direction = policy(self.grid, self.robot)
+            direction = self.choose_direction(direction, self.robot.position, pmax=pmax)
+            self.robot.move(direction)
+
+            reward = self.grid.compute_reward(self.robot)
             score += self.value_function.reward_discount * reward
-            s1 = state_key(robot, grid)
+            s1 = state_key(self.robot, self.grid)
             self.value_function.update(s0, s1, reward)
             s0 = s1
-            render.after_move(grid, robot)
+            render.after_move(self.grid, self.robot)
         
-        return score, grid.mission_complete
+        return score, self.grid.mission_complete

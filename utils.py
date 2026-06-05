@@ -8,4 +8,4 @@ def state_key(robot: Robot, grid: Grid):
     x, y = robot.position
     x, y = x.item(), y.item()
 
-    return (x, y, robot.battery, grid.waypoints_status)
+    return (x, y, robot.battery, grid.waypoints_status())

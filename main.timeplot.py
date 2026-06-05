@@ -8,9 +8,9 @@ from render import *
 
 vf = ValueFunction(reward_discount=0.9)
 no_render = NoRender()
-ex = Experiment(num_waypoints=5, value_function=vf)
+ex = Experiment(grid_seed=42, num_waypoints=5, value_function=vf)
 
 for it in tqdm(range(100)):
-    ex.run(seed=42+it, policy=greedy_policy, render=no_render, pmax=0.8)
+    ex.run(robot_seed=42+it, policy=greedy_policy, render=no_render, pmax=0.8)
 
-ex.run(seed=42, policy=greedy_policy, render=TimePlotRender(vf, .5), pmax=.8)
+ex.run(robot_seed=42, policy=greedy_policy, render=TimePlotRender(value_function=vf, frame_draw_time=.4), pmax=0.8)

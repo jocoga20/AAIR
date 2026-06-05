@@ -30,8 +30,6 @@ def plot_vf(vf: ValueFunction):
 
 def key_to_title(key):
     x, y, b, w = key
-    w = "{0:b}".format(w)
-    w = w[::-1]
     return (x, y, b, w)
 
 def plot_state_values(key, values, path=None):

@@ -1,25 +1,51 @@
-This project applies Temporal Difference algorithms to estimate the value function of a robot moving in a grid world.
+In this project Temporal Difference algorithms are applied to estimate the value function of a robot moving in a grid world.
+
+Both TD(0) and TD($\lambda$) works in real-time: they can approximate the value function during the episode.
+
+## TD(0)
+
+$V(S_t) = V(S_t) + \alpha E$
+
+$E = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$
+
+$E$ = TD error. When positive it means the value of that status should be higher, or lower when negative.
+
+$\gamma$ = reward discount
+
+$\alpha$ = learning rate (or step size), this takes into account the fact that the we have an error caused by the approximation.
+
+
+
+
+
+## TD($\lambda$)
 
 ## Task
 The robot starts the episode at the charge station, where the battery fully recharges every time it lands there.
-Every step costs one unit of battery, when it is fully drained the robot stops and the episode is failed.
+
+Each step costs one unit of battery, when it is fully drained the robot stops and the episode fails.
+
 The objective is to visit all waypoints and then come back to the charge station without running out of battery. 
 
 ## States of the value function
-The state is determined by the position of the robot (x, y), its battery level and the waypoint status.
-Assuming *n* waypoints to visit, waypoint status is the integer number corresponding to a binary string constructed in the following way: each bit corresponds to a waypoint, the value is 1 if that waypoint was visited during the episode and 0 otherwise.
+The state is determined by the position of the robot (x, y), the battery level and the waypoint status.
+
+Assuming *n* waypoints to visit, waypoint status is a binary string built as follows: each bit corresponds to a waypoint, the value is 1 if that waypoint was visited during the episode and 0 otherwise.
+
 By default the grid world is 20x20, *n*=5 and battery level assumes integer values between 0 and `FULL_BATTERY` (default is 80). These settings are configurable in the `config.py` file.
 
 ## Rewards
-COMPLETE_REWARD = given if the episode ended with success (all waypoints visited and charge station reached)
+Rewards (configurable in `config.py`) are added to the score if a certain condition applies
 
-WAYPOINT_REWARD = given when a waypoint is visited for the first time. Note
+COMPLETE_REWARD = episode ended with success (all waypoints visited and charge station reached)
 
-CHARGE_REWARD = given when robot is at the charge station
+WAYPOINT_REWARD = a waypoint is visited for the first time
 
-EMPTY_REWARD = given if the robot is on a normal cell (not a waypoint and not a charge station either)
+CHARGE_REWARD = every time the robot reaches the charge station
 
-FAIL_REWARD = given if the task is failed
+EMPTY_REWARD = the robot is on a normal cell (not a waypoint and not a charge station either)
+
+FAIL_REWARD = if the episode failed
 
 ## Policies
 These are the policies used in the experiments:
@@ -28,7 +54,7 @@ These are the policies used in the experiments:
 The robot will always head for the nearest waypoint. If they are all visited it will head to the charge station.
 
 ### Pedant Policy
-The robot will head to the nearest waypoint if the battery is enough to visit it and then going back to the charge station, assuming it will always follow the minimal path. Formally it goes to the nearest_waypoint if the following condition is satisfied:
+The robot will head to the nearest waypoint if the battery is enough to visit it and then going back to the charge station, assuming it will always follow the minimal path. Formally it goes to the `nearest_waypoint` if the following condition is true:
 
 `robot.battery >= min_path_len(robot.position, nearest_waypoint) + min_path_len(nearest_waypoint, charge_station)`
 

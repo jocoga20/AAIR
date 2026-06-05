@@ -6,7 +6,7 @@ from ValueFunctionLambda import ValueFunctionLambda
 from policies import *
 from render import *
 
-vf = ValueFunction(reward_discount=0.9)
+vf = ValueFunctionLambda(reward_discount=0.9, eligibility_decay=0.9)
 no_render = NoRender()
 ex = Experiment(grid_seed=42, num_waypoints=5, value_function=vf)
 
